@@ -404,118 +404,232 @@ function App() {
             aria-label={`–í–∫–ª—é—á–∏—Ç—å ${state.theme === "dark" ? "—Å–≤–µ—Ç–ª—É—é" : "—Ç—ë–º–Ω—É—é"} —Ç–µ–º—É`}
             onClick={() => setState((current) => ({
               ...current,
-              uÛ›v∂âûÀk∫wµÁY
-N¬àõ€ù\⁄^ôNàL\¬àõ€ù]ŸZY⁄à¬à]\ã\‹X⁄[ôŒàå[N¬üBÇãò‹ôX]\ôKZY[ù]H¬àZ[ã]⁄Yà¬üBÇãõò[YK\õ›»¬à\‹^Nàõ^¬à[Y€ãZ][\ŒàŸ[ù\é¬àÿ\à¬àZ[ã]⁄Yà¬üBÇãõò[YK\õ›»à¬à›ô\ôõ›ŒàY[é¬àX\ô⁄[éà¬àõ€ùYò[Z[Nàî‹X›ò[ãŸ[‹ô⁄XKŸ\öYé¬àõ€ù\⁄^ôNàå¬à[ôKZZY⁄àKåN¬à^[›ô\ôõ›Œà[\⁄\Œ¬à⁄]K\‹XŸNàõ›‹ò\¬üBÇãúô\€›\òŸK\›[[X\ûH¬à\‹^Nàõ^¬àõ^]‹ò\à‹ò\¬àÿ\à‹M\¬àX\ô⁄[ã]‹à¬à€€‹éàò\äK]^[]]Y
-N¬àõ€ù\⁄^ôNàL\¬àõ€ù]ŸZY⁄àå¬üBÇãúô\€›\òŸK\›[[X\ûHà¬àX\ô⁄[ã[Yùà‹¬à€€‹éàò\äK]^
-N¬àõ€ù\⁄^ôNàLú¬üBÇãúô\€›\òŸK\›[[X\ûHô[ôŸ\ããúô\€›\òŸK\›[[X\ûHô[ôŸ\àà¬à€€‹éàò\äKY[ôŸ\äN¬üBÇãú›]\ÀXòYŸH¬àõ^à]]Œ¬àõ‹ô\ã\òY]\ŒàNN\¬àY[ôŒà‹¬àõ€ù\⁄^ôNà¬àõ€ù]ŸZY⁄à¬à]\ã\‹X⁄[ôŒàå[N¬à^]ò[úŸõ‹õNà\\òÿ\ŸN¬üBÇãú›]\ÀXòYŸKò›\úô[ù¬à€€‹éàò\äKXúò[ô]^
-N¬àòX⁄Ÿ‹õ›[ôàò\äKXúò[ô\€Ÿù
-N¬à[ö[X][€éàòYŸK\[ŸHú»X\ŸKZ[ã[›][ôö[ö]N¬üBÇãú›]\ÀXòYŸKô›€à¬à€€‹éàŒMXåMé¬àòX⁄Ÿ‹õ›[ôà€€‹ã[Z^
-[à‹ôÿãò\äKY€€
-Hå	Kò[ú‹\ô[ù
-N¬üBÇãú›]\ÀXòYŸKôXY¬à€€‹éàò\äKY[ôŸ\äN¬àòX⁄Ÿ‹õ›[ôàò\äKY[ôŸ\ã\€Ÿù
-N¬üBÇãö[ö]X]]ôKXõﬁ¬à‹⁄][€éàô[]]ôN¬à\‹^Nà‹öY¬àZ[ã]⁄Yàå¬àZ[ãZZY⁄àMú¬àXŸKX€€ù[ùàŸ[ù\é¬àõ‹ô\éà\€€Yò\äK[[ôJN¬àõ‹ô\ã\òY]\ŒàLú¬àòX⁄Ÿ‹õ›[ôàò\äKXôÀ\€Ÿù
-N¬à^X[Y€éàŸ[ù\é¬üBÇãö[ö]X]]ôKXõﬁ‹[à¬à€€‹éàò\äK]^[]]Y
-N¬àõ€ù\⁄^ôNà¬àõ€ù]ŸZY⁄à¬à]\ã\‹X⁄[ôŒàåY[N¬à^]ò[úŸõ‹õNà\\òÿ\ŸN¬üBÇãö[ö]X]]ôKXõﬁ›õ€ô»¬àõ€ùYò[Z[Nàî‹X›ò[ãŸ[‹ô⁄XKŸ\öYé¬àõ€ù\⁄^ôNàå‹¬à[ôKZZY⁄àKåN¬üBÇãö[ö]X]]ôKXõﬁ[ú]¬à⁄YàM¬àõ‹ô\éà¬àòX⁄Ÿ‹õ›[ôàò[ú‹\ô[ù¬à€€‹éàò\äK]^
-N¬àõ€ùYò[Z[Nàî‹X›ò[ãŸ[‹ô⁄XKŸ\öYé¬àõ€ù\⁄^ôNàå\¬àõ€ù]ŸZY⁄àÃ¬à^X[Y€éàŸ[ù\é¬üBÇãö[ö]X]]ôKXõﬁ[ú]ôõÿ›\»¬à›][ôNà¬üBÇãö[ö]X]]ôKXõﬁ€X[¬à‹⁄][€éàXú€€]N¬àöY⁄àM\¬àõ›€NàM\¬àZ[ã]⁄Yàåú¬àõ‹ô\ã\òY]\Œà‹¬àY[ôŒàú¬à€€‹éàò\äKXúò[ô]^
-N¬àòX⁄Ÿ‹õ›[ôàò\äKXúò[ô\€Ÿù
-N¬àõ€ù\⁄^ôNà¬àõ€ù]ŸZY⁄à¬üBÇãö[ö]X]]ôKXõﬁH¬à‹⁄][€éàXú€€]N¬à‹àM\¬àöY⁄àM¬à€€‹éàò\äKXõYJN¬àõ€ù\⁄^ôNà\¬àõ€ù\›[Nàõ‹õX[¬üBÇãúô[[›ôKXù]€à¬à\‹^Nà‹öY¬à⁄YàÃ¬àZY⁄àÃ¬àXŸKZ][\ŒàŸ[ù\é¬àõ‹ô\ã\òY]\Œà¬à€€‹éàò\äK]^[]]Y
-N¬àõ€ù\⁄^ôNàå¬àò[ú⁄][€éà€€‹àM\»X\ŸKòX⁄Ÿ‹õ›[ôM\»X\ŸKò[úŸõ‹õHLå\»X\ŸN¬üBÇãúô[[›ôKXù]€éö›ô\à¬à€€‹éàò\äKY[ôŸ\äN¬àòX⁄Ÿ‹õ›[ôàò\äKY[ôŸ\ã\€Ÿù
-N¬àò[úŸõ‹õNàõ›]JôY N¬üBÇãòX›]ôKX€€ù[ù¬àY[ôŒàNN¬à[ö[X][€éà€€ù[ù\ô]ôX[ÃÃ\»X\ŸHõ›¬üBÇãúô\€›\òŸKY‹öY¬à\‹^Nà‹öY¬à‹öY][\]KX€€[[úŒàô\X]
-ÀZ[õX^
-YúäJN¬àÿ\àL¬àõ‹ô\ã]‹à\€€Yò\äK[[ôJN¬àY[ôÀ]‹àMú¬üBÇãúô\€›\òŸKYY]‹à¬àK\ô\€›\òŸKX€€‹éàò\äKY‹ôY[äN¬àK\ô\€›\òŸK\€Ÿùàò\äKY‹ôY[ã\€Ÿù
-N¬àõ‹ô\éà\€€Y€€‹ã[Z^
-[à‹ôÿãò\äK\ô\€›\òŸKX€€‹äHåâKò\äK[[ôJJN¬àõ‹ô\ã\òY]\ŒàL‹¬àY[ôŒàL\¬àòX⁄Ÿ‹õ›[ôà€€‹ã[Z^
-[à‹ôÿãò\äK\ô\€›\òŸK\€Ÿù
-HŒ	Kò\äK\›\ôòXŸK\€€Y
-JN¬üBÇãúô\€›\òŸKYY]‹ãô[ô\ôﬁH¬àK\ô\€›\òŸKX€€‹éàò\äKXõYJN¬àK\ô\€›\òŸK\€Ÿùàò\äKXõYK\€Ÿù
-N¬üBÇãúô\€›\òŸKYY]‹ãõ›\à¬àK\ô\€›\òŸKX€€‹éàò\äK]ö[€]
-N¬àK\ô\€›\òŸK\€Ÿùàò\äK]ö[€]\€Ÿù
-N¬üBÇãúô\€›\òŸKZXY[ô»¬à\‹^Nàõ^¬à[Y€ãZ][\ŒàŸ[ù\é¬àù\›YûKX€€ù[ùà‹XŸKXô]ŸY[é¬àÿ\à¬àX\ô⁄[ãXõ›€NàL¬üBÇãúô\€›\òŸKZXY[ô»‹[à¬à›ô\ôõ›ŒàY[é¬à€€‹éàò\äK\ô\€›\òŸKX€€‹äN¬àõ€ù\⁄^ôNàL¬àõ€ù]ŸZY⁄à¬à]\ã\‹X⁄[ôŒàåLY[N¬à^[›ô\ôõ›Œà[\⁄\Œ¬à^]ò[úŸõ‹õNà\\òÿ\ŸN¬à⁄]K\‹XŸNàõ›‹ò\¬üBÇãúô\€›\òŸKZXY[ô»[ú]¬à⁄Yàé¬àõ‹ô\éà\€€Y€€‹ã[Z^
-[à‹ôÿãò\äK\ô\€›\òŸKX€€‹äHÃ	Kò\äK[[ôJJN¬àõ‹ô\ã\òY]\Œà¬àY[ôŒà\‹¬à€€‹éàò\äK]^
-N¬àòX⁄Ÿ‹õ›[ôàò\äK\›\ôòXŸK\€€Y
-N¬àõ€ù\⁄^ôNàM\¬àõ€ù]ŸZY⁄à¬à^X[Y€éàöY⁄¬üBÇãú›\Y‹öY¬à\‹^Nà‹öY¬à‹öY][\]KX€€[[úŒàô\X]
-ãZ[õX^
-YúäJN¬àÿ\à¬üBÇãú›\Y‹öYù]€à¬àZ[ã]⁄Yà¬àõ‹ô\éà\€€Yò\äK[[ôJN¬àõ‹ô\ã\òY]\Œà‹¬àY[ôŒàúú¬à€€‹éàò\äK]^[]]Y
-N¬àòX⁄Ÿ‹õ›[ôàò\äK\›\ôòXŸK\€€Y
-N¬àõ€ù\⁄^ôNà\¬àõ€ù]ŸZY⁄à¬àò[ú⁄][€éàò[úŸõ‹õHL\»X\ŸK€€‹àLå\»X\ŸKõ‹ô\ãX€€‹àLå\»X\ŸKòX⁄Ÿ‹õ›[ôLå\»X\ŸN¬üBÇãú›\Y‹öYù]€éö›ô\à¬àõ‹ô\ãX€€‹éàò\äK\ô\€›\òŸKX€€‹äN¬à€€‹éàò\äK\ô\€›\òŸKX€€‹äN¬àò[úŸõ‹õNàò[ú€]VJLú
-N¬üBÇãú›\Y‹öYù]€éòX›]ôH¬àò[úŸõ‹õNàò[ú€]VJ
-Hÿÿ[Jé
-N¬àòX⁄Ÿ‹õ›[ôàò\äK\ô\€›\òŸK\€Ÿù
-N¬üBÇãù\õã[ò]öYÿ][€à¬à\‹^Nà‹öY¬à‹öY][\]KX€€[[úŒàZ[õX^
-LYúäH]]»Z[õX^
-LYúäN¬àÿ\àLú¬à[Y€ãZ][\ŒàŸ[ù\é¬àX\ô⁄[ã]‹àM‹¬àõ‹ô\ã]‹à\€€Yò\äK[[ôJN¬àY[ôÀ]‹àMú¬üBÇãõò]ãXù]€à¬àZ[ãZZY⁄àú¬àõ‹ô\éà\€€Yò\äK[[ôJN¬àõ‹ô\ã\òY]\ŒàL\¬àòX⁄Ÿ‹õ›[ôàò\äK\›\ôòXŸK\€€Y
-N¬àõ€ù\⁄^ôNàLú¬àõ€ù]ŸZY⁄à¬àò[ú⁄][€éàò[úŸõ‹õHM\»X\ŸKõ‹ô\ãX€€‹àM\»X\ŸK€€‹àM\»X\ŸKòX⁄Ÿ‹õ›[ôM\»X\ŸN¬üBÇãõò]ãXù]€éö›ô\éõõ›
-ô\ÿXõY
-H¬àõ‹ô\ãX€€‹éàò\äKXúò[ô
-N¬à€€‹éàò\äKXúò[ô
-N¬àò[úŸõ‹õNàò[ú€]V
-Lú
-N¬üBÇãõò]ãXù]€ãôõ‹ùÿ\ôö›ô\éõõ›
-ô\ÿXõY
-H¬àò[úŸõ‹õNàò[ú€]V
-ú
-N¬üBÇãõò]ãXù]€éòX›]ôNõõ›
-ô\ÿXõY
-H¬àò[úŸõ‹õNàÿÿ[JéMäN¬üBÇãõò]ãXù]€éô\ÿXõY¬à›\ú€‹éàõ›X[›ŸY¬à‹X⁄]NàåÕN¬üBÇãõò]ãXù]€à‹[à¬àX\ô⁄[éà¬àõ€ù\⁄^ôNàMú¬üBÇãù\õã\õŸ‹ô\‹»¬à\‹^Nà‹öY¬àZ[ã]⁄Yàé¬à^X[Y€éàŸ[ù\é¬üBÇãù\õã\õŸ‹ô\‹»‹[à¬à€€‹éàò\äK]^[]]Y
-N¬àõ€ù\⁄^ôNà¬àõ€ù]ŸZY⁄à¬à]\ã\‹X⁄[ôŒàåLŸ[N¬à^]ò[úŸõ‹õNà\\òÿ\ŸN¬üBÇãù\õã\õŸ‹ô\‹»à¬àõ€ù\⁄^ôNàLú¬üBÇãõô]À\õ›[ôXù]€à¬àù\›YûK\Ÿ[éà›ô]⁄¬à⁄]K\‹XŸNàõ›‹ò\¬üBÇãõô]À\õ›[ôXù]€éö›ô\àú‹[ãZX€€à¬à[ö[X][€éàX€€ã\‹[àL\»X\ŸN¬üBÇãôX]\ÿ]ô\»¬à\‹^Nà‹öY¬àÿ\àL‹¬àõ‹ô\ã]‹à\€€Yò\äK[[ôJN¬àY[ôŒàN\¬üBÇãôX]\ÿ]ô\Àò€€\X›¬à‹öY][\]KX€€[[úŒàô\X]
-ãZ[õX^
-YúäJN¬àÿ\àMú¬àX\ô⁄[éàMúL‹é¬àõ‹ô\ã]‹à\€€Yò\äK[[ôJN¬àY[ôŒàL\¬üBÇãúÿ]ôK\õ›»¬à\‹^Nàõ^¬à[Y€ãZ][\ŒàŸ[ù\é¬àù\›YûKX€€ù[ùà‹XŸKXô]ŸY[é¬àÿ\àLú¬üBÇãúÿ]ôK\õ›»à‹[à¬à€€‹éàò\äK]^[]]Y
-N¬àõ€ù\⁄^ôNàL\¬àõ€ù]ŸZY⁄à¬à]\ã\‹X⁄[ôŒàå[N¬à^]ò[úŸõ‹õNà\\òÿ\ŸN¬üBÇãúÿ]ôK\\»¬à\‹^Nàõ^¬àÿ\à¬üBÇãúÿ]ôK\\¬à⁄Yàç\¬àZY⁄àç\¬àõ‹ô\éàú€€Yò\äK[[ôK\›õ€ô N¬àõ‹ô\ã\òY]\ŒàL	N¬àòX⁄Ÿ‹õ›[ôàò[ú‹\ô[ù¬àò[ú⁄][€éàò[úŸõ‹õHML\»›XöXÀXô^öY\äåÕKçMãççJKõ‹ô\ãX€€‹àML\»X\ŸKòX⁄Ÿ‹õ›[ôML\»X\ŸKõﬁ\⁄Y›»ML\»X\ŸN¬üBÇãúÿ]ôK\\ö›ô\à¬àò[úŸõ‹õNàÿÿ[JKåM
-N¬üBÇãúÿ]ôK\\ôö[Yú›XÿŸ\‹Ÿ\»¬àõ‹ô\ãX€€‹éàò\äKY‹ôY[äN¬àòX⁄Ÿ‹õ›[ôàò\äKY‹ôY[äN¬àõﬁ\⁄Y›Œà€€‹ã[Z^
-[à‹ôÿãò\äKY‹ôY[äHL…Kò[ú‹\ô[ù
-N¬üBÇãúÿ]ôK\\ôö[YôòZ[\ô\»¬àõ‹ô\ãX€€‹éàò\äKY[ôŸ\äN¬àòX⁄Ÿ‹õ›[ôàò\äKY[ôŸ\äN¬àõﬁ\⁄Y›Œà€€‹ã[Z^
-[à‹ôÿãò\äKY[ôŸ\äHL…Kò[ú‹\ô[ù
-N¬üBÇãò‹ôX]\ôKXÿ\ôô[[Z[ò]Y¬à‹X⁄]NàçN¬àö[\éàÿ]\ò]JçJN¬üBÇãò‹ôX]\ôKXÿ\ôô[[Z[ò]Yõò[YK\õ›»ããò‹ôX]\ôKXÿ\ôô[[Z[ò]Yúô\€›\òŸK\›[[X\ûH¬à^YX€‹ò][€éà[ôK]õ›Y⁄¬üBÇãô[\K\›]H¬à\‹^Nà‹öY¬àZ[ãZZY⁄àÃÃ¬àXŸKZ][\ŒàŸ[ù\é¬à[Y€ãX€€ù[ùàŸ[ù\é¬àõ‹ô\éà\\⁄Yò\äK[[ôK\›õ€ô N¬àõ‹ô\ã\òY]\Œàåú¬àY[ôŒàŒå¬àòX⁄Ÿ‹õ›[ôà€€‹ã[Z^
-[à‹ôÿãò\äK\›\ôòXŸJHN	Kò[ú‹\ô[ù
-N¬à^X[Y€éàŸ[ù\é¬üBÇãô[\KYYH¬à\‹^Nà‹öY¬à⁄YàÃú¬àZY⁄àÃú¬àX\ô⁄[ãXõ›€NàM\¬àXŸKZ][\ŒàŸ[ù\é¬àõ‹ô\ã\òY]\Œàç¬à€€‹éàò\äKXúò[ô
-N¬àòX⁄Ÿ‹õ›[ôàò\äKXúò[ô\€Ÿù
-N¬àò[úŸõ‹õNàõ›]JMYY N¬üBÇãô[\KYYH›ô»¬à⁄Yà¬àZY⁄à¬àö[àõ€ôN¬à›õ⁄ŸNà›\úô[ù€€‹é¬à›õ⁄ŸK]⁄YàKçé¬üBÇãô[\K\›]Hà¬àX\ô⁄[ãXõ›€Nàú¬àõ€ùYò[Z[Nàî‹X›ò[ãŸ[‹ô⁄XKŸ\öYé¬àõ€ù\⁄^ôNàç\¬üBÇãô[\K\›]H¬àX^]⁄YàÕå¬àX\ô⁄[ãXõ›€Nàå¬à€€‹éàò\äK]^[]]Y
-N¬àõ€ù\⁄^ôNàL‹¬üBÇãò€€Xò]Xù]€à¬à⁄YàL	N¬àZ[ãZZY⁄àMú¬àX\ô⁄[ã]‹àN¬àõ‹ô\éà¬àõ‹ô\ã\òY]\ŒàM\¬àõ€ù\⁄^ôNàM¬à]\ã\‹X⁄[ôŒàåŸ[N¬üBÇãò€€Xò]Xù]€à›ô»¬à⁄Yàç\¬àZY⁄àç\¬àö[àõ€ôN¬à›õ⁄ŸNà›\úô[ù€€‹é¬à›õ⁄ŸK]⁄YàKçŒ¬üBÇãõ[Ÿ[XòX⁄Ÿõ‹¬à‹⁄][€éàö^Y¬àãZ[ô^àL¬à[úŸ]à¬à\‹^Nà‹öY¬àXŸKZ][\ŒàŸ[ù\é¬à›ô\ôõ›À^Nà]]Œ¬àY[ôŒàå¬àòX⁄Ÿ‹õ›[ôàôÿòJLãKçN
-N¬àòX⁄Ÿõ‹Yö[\éàõ\ä
-N¬à[ö[X][€éàòYKZ[àN\»X\ŸHõ›¬üBÇãòYYõ‹õH¬à⁄YàZ[äLåL	JN¬àõ‹ô\éà\€€Yò\äK[[ôJN¬àõ‹ô\ã\òY]\Œàåú¬àY[ôŒàç¬àòX⁄Ÿ‹õ›[ôàò\äK\›\ôòXŸK\€€Y
-N¬àõﬁ\⁄Y›ŒàÃLôÿòJå N¬à[ö[X][€éà[Ÿ[Y[ù\àÃå\»›XöXÀXô^öY\äååãKåÕãJHõ›¬üBÇãôõ‹õKZXY[ô»¬à\‹^Nàõ^¬à[Y€ãZ][\Œà›\ù¬àù\›YûKX€€ù[ùà‹XŸKXô]ŸY[é¬àÿ\àMú¬àX\ô⁄[ãXõ›€Nàå¬üBÇãôõ‹õKZXY[ô»à¬àX\ô⁄[éà¬àõ€ùYò[Z[Nàî‹X›ò[ãŸ[‹ô⁄XKŸ\öYé¬àõ€ù\⁄^ôNàç‹¬üBÇãöX€€ãXù]€à¬à\‹^Nà‹öY¬à⁄YàÕú¬àZY⁄àÕú¬àXŸKZ][\ŒàŸ[ù\é¬àõ‹ô\ã\òY]\ŒàL¬à€€‹éàò\äK]^[]]Y
-N¬àõ€ù\⁄^ôNàç\¬àò[ú⁄][€éà€€‹àM\»X\ŸKòX⁄Ÿ‹õ›[ôM\»X\ŸKò[úŸõ‹õHM\»X\ŸN¬üBÇãöX€€ãXù]€éö›ô\à¬à€€‹éàò\äKY[ôŸ\äN¬àòX⁄Ÿ‹õ›[ôàò\äKY[ôŸ\ã\€Ÿù
-N¬àò[úŸõ‹õNàõ›]JYY N¬üBÇãôõ‹õKY‹öY¬à\‹^Nà‹öY¬à‹öY][\]KX€€[[úŒàô\X]
-ãZ[õX^
-YúäJN¬àÿ\àL‹¬àX\ô⁄[ã]‹àL‹¬üBÇãôöY[¬à\‹^Nà‹öY¬àÿ\àú¬üBÇãôöY[ôù[¬à⁄YàL	N¬üBÇãôöY[‹[à¬à€€‹éàò\äK]^[]]Y
-N¬àõ€ù\⁄^ôNàL¬àõ€ù]ŸZY⁄à¬à]\ã\‹X⁄[ôŒàå[N¬à^]ò[úŸõ‹õNà\\òÿ\ŸN¬üBÇãôöY[[ú]¬à⁄YàL	N¬àZ[ãZZY⁄à¬àõ‹ô\éà\€€Yò\äK[[ôK\›õ€ô N¬àõ‹ô\ã\òY]\ŒàL¬àY[ôŒà\L\¬à€€‹éàò\äK]^
-N¬àòX⁄Ÿ‹õ›[ôàò\äKXô N¬àò[ú⁄][€éàõ‹ô\ãX€€‹àM\»X\ŸKõﬁ\⁄Y›»M\»X\ŸKòX⁄Ÿ‹õ›[ôM\»X\ŸN¬üBÇãôöY[[ú]ôõÿ›\»¬àõ‹ô\ãX€€‹éàò\äKXúò[ô
-N¬à›][ôNà¬àòX⁄Ÿ‹õ›[ôàò\äK\›\ôòXŸK\€€Y
-N¬àõﬁ\⁄Y›Œà‹€€‹ã[Z^
-[à‹ôÿãò\äKXúò[ô
-HLâKò[ú‹\ô[ù
-N¬üBÇãö[ö]X]]ôKYöY[¬àX\ô⁄[ã]‹àL‹¬üBÇãôöY[Y\úõ‹à¬à€€‹éàò\äKY[ôŸ\äN¬àõ€ù\⁄^ôNàL\¬üBÇãôõ‹õKXX›[€ú»¬à\‹^Nà‹öY¬à‹öY][\]KX€€[[úŒàYúàKçúé¬àÿ\àL¬àX\ô⁄[ã]‹àå‹¬üBÇãúõ›[ô\⁄YôõHò‹ôX]\ôKXÿ\ô¬à[ö[X][€éàõ›[ôXÿ\ô\⁄YôõHåå\»õ›¬à[ö[X][€ãY[^Nàÿ[ ò\äKXÿ\ôZ[ô^
-H
-à[\ N¬üBÇêŸ^Yúò[Y\»ÿ\ôY[ù\à¬àúõ€H»‹X⁄]Nà»ò[úŸõ‹õNàò[ú€]VJLú
-N»Bà»»‹X⁄]NàN»ò[úŸõ‹õNàò[ú€]VJ
-N»BüBÇêŸ^Yúò[Y\»X›]ôKXÿ\ô[‹[à¬àúõ€H»ò[úŸõ‹õNàÿÿ[JéNJN»Bà»»ò[úŸõ‹õNàÿÿ[JJN»BüBÇêŸ^Yúò[Y\»€€ù[ù\ô]ôX[¬àúõ€H»‹X⁄]Nà»ò[úŸõ‹õNàò[ú€]VJM‹
-N»Bà»»‹X⁄]NàN»ò[úŸõ‹õNàò[ú€]VJ
-N»BüBÇêŸ^Yúò[Y\»òYŸK\[ŸH¬àL	H»õﬁ\⁄Y›Œà\€€‹ã[Z^
-[à‹ôÿãò\äKXúò[ô
-HL	Kò[ú‹\ô[ù
-N»BüBÇêŸ^Yúò[Y\»õ›[ô\[ô[\[ŸH¬à	H»õ‹ô\ãX€€‹éàò\äKXúò[ô
-N»õﬁ\⁄Y›Œàú€€‹ã[Z^
-[à‹ôÿãò\äKXúò[ô
-HL	Kò[ú‹\ô[ù
-N»BüBÇêŸ^Yúò[Y\»õ›[ô[ù[Xô\ã\‹¬à	H»‹X⁄]Nà»ò[úŸõ‹õNàò[ú€]VJLú
-Hÿÿ[JçäN»Bàå	H»ò[úŸõ‹õNàò[ú€]VJLú
-Hÿÿ[JKååäN»BàL	H»‹X⁄]NàN»ò[úŸõ‹õNàò[ú€]VJ
-Hÿÿ[JJN»BüBÇêŸ^Yúò[Y\»õ›[ôXÿ\ô\⁄YôõH¬à	H»‹X⁄]Nàç»ò[úŸõ‹õNàò[ú€]VJL‹
-Hÿÿ[JéN
-N»BàMIH»‹X⁄]NàN»ò[úŸõ‹õNàò[ú€]VJLú
-Hÿÿ[JKåJN»BàL	H»‹X⁄]NàN»ò[úŸõ‹õNàò[ú€]VJ
-Hÿÿ[JJN»BüBÇêŸ^Yúò[Y\»X€€ã\‹[à¬à»»ò[úŸõ‹õNàõ›]JÕåY N»BüBÇêŸ^Yúò[Y\»òYKZ[à¬àúõ€H»‹X⁄]Nà»Bà»»‹X⁄]NàN»BüBÇêŸ^Yúò[Y\»[Ÿ[Y[ù\à¬àúõ€H»‹X⁄]Nà»ò[úŸõ‹õNàò[ú€]VJMú
-Hÿÿ[JéM N»Bà»»‹X⁄]NàN»ò[úŸõ‹õNàò[ú€]VJ
-Hÿÿ[JJN»BüBÇêYYXH
-X^]⁄YàÃå
-H¬àXZ[à¬à⁄YàZ[äL	HHåúN
-N¬àY[ôÀ]‹àN¬àBÇàò€€Xò]\[ô[¬àX\ô⁄[ãXõ›€NàÃ¬àBÇàõ[ŸKX€€ùõ€¬àY[ôŒàM¬àBÇàúô\€›\òŸKY‹öY¬à‹öY][\]KX€€[[úŒàYúé¬àBÇàúô\€›\òŸKYY]‹à¬à\‹^Nà‹öY¬à‹öY][\]KX€€[[úŒàZ[õX^
-LLçŸúäHYúé¬à[Y€ãZ][\ŒàŸ[ù\é¬àÿ\àL¬àBÇàúô\€›\òŸKZXY[ô»¬àX\ô⁄[ãXõ›€Nà¬àBüBÇêYYXH
-X^]⁄Yà
-H¬àù‹ò\à¬àZ[ãZZY⁄àç¬àY[ôŒà\L\¬àBÇàòúò[ôà›ô»¬à⁄YàÃú¬àZY⁄àÃú¬àBÇàòúò[ô[ò[YH¬àõ€ù\⁄^ôNàM¬àBÇàòúò[ô\›Xù]H¬à\‹^Nàõ€ôN¬àBÇàù‹ò\ãX€€ùõ€»¬àÿ\à‹¬àBÇàù[YK]ŸŸ€H‹[à¬à⁄Yàç‹¬àZY⁄àç‹¬àBÇàúô\Ÿ]Xù]€à¬àZ[ã]⁄YàN¬àY[ôÀZ[õ[ôNà‹¬àõ€ù\⁄^ôNàL\¬àBÇàò€€Xò]\[ô[¬à‹öY][\]KX€€[[úŒàZ[õX^
-YúäHÕ‹¬àÿ\à¬àBÇàõ[ŸKX€€ùõ€¬àÿ\à¬àBÇàò€€ùõ€[Xô[¬àõ€ù\⁄^ôNàLú¬àBÇàò€€ùõ€Y\ÿ‹ö\[€ãàú›⁄]⁄]ò[YH¬à\‹^Nàõ€ôN¬àBÇàúõ›[ôY\‹^H¬àZ[ã]⁄Yà¬àBÇàúõ‹›\ãZXY[ô»¬à[Y€ãZ][\ŒàŸ[ù\é¬àBÇàúõ‹›\ãZXY[ô»H¬àõ€ù\⁄^ôNàç‹¬àBÇàòYXù]€à¬àZ[ãZZY⁄àŒ\¬àY[ôŒàL\¬àõ€ù\⁄^ôNàL\¬àBÇàòÿ\ôZXY\à¬à‹öY][\]KX€€[[úŒàZ[õX^
-YúäHN]]Œ¬àÿ\à¬àZ[ãZZY⁄àÕú¬àY[ôŒàLúL\LúM\¬àBÇàù\õã[ù[Xô\à¬à\‹^Nàõ€ôN¬àBÇàõò[YK\õ›»¬àÿ\à\¬àBÇàõò[YK\õ›»à¬àõ€ù\⁄^ôNàN¬àBÇàú›]\ÀXòYŸH¬àY[ôŒà‹\¬àõ€ù\⁄^ôNà‹¬àBÇàú›]\ÀXòYŸKò›\úô[ù¬à\‹^Nàõ€ôN¬àBÇàúô\€›\òŸK\›[[X\ûH¬àÿ\à\\¬àõ€ù\⁄^ôNà\¬àBÇàúô\€›\òŸK\›[[X\ûHà¬àõ€ù\⁄^ôNàL¬àBÇàö[ö]X]]ôKXõﬁ¬àZ[ã]⁄YàMú¬àZ[ãZZY⁄àLú¬àBÇàúô[[›ôKXù]€à¬à⁄Yàç\¬àBÇàòX›]ôKX€€ù[ù¬àY[ôŒàL\Lú¬àBÇàúô\€›\òŸKYY]‹à¬à‹öY][\]KX€€[[úŒàYúé¬àY[ôŒà\¬àBÇàúô\€›\òŸKZXY[ô»¬à\‹^Nà‹öY¬àÿ\à¬àBÇàúô\€›\òŸKZXY[ô»[ú]¬à⁄YàL	N¬à^X[Y€éàYù¬àBÇàú›\Y‹öY¬àÿ\à‹¬àBÇàú›\Y‹öYù]€à¬àY[ôŒà‹\¬àõ€ù\⁄^ôNà¬àBÇàù\õã[ò]öYÿ][€à¬à‹öY][\]KX€€[[úŒàYúà]]»Yúé¬àÿ\à‹¬àBÇàõò]ãXù]€ãàõô]À\õ›[ôXù]€à¬àZ[ã]⁄Yà¬àY[ôÀZ[õ[ôNà¬àõ€ù\⁄^ôNàL¬àBÇàù\õã\õŸ‹ô\‹»¬àZ[ã]⁄Yà¬àBÇàôX]\ÿ]ô\Àò€€\X›¬àX\ô⁄[ã[YùàM\¬àBÇàúÿ]ôK\\¬à⁄Yàåú¬àZY⁄àåú¬àBÇàòYYõ‹õH¬àY[ôŒàN\¬àBÇàôõ‹õKY‹öY¬àÿ\àL¬àBüBÇêYYXH
-ôYô\úÀ\ôYXŸY[[›[€éàôYXŸJH¬à
-ãà
-ééòôYõ‹ôKà
-ééòYù\à¬àÿ‹õ€XôZ]ö[‹éà]]»Z[\‹ù[ù¬à[ö[X][€ãY\ò][€éàå[\»Z[\‹ù[ù¬à[ö[X][€ãZ]\ò][€ãX€›[ùàHZ[\‹ù[ù¬àò[ú⁄][€ãY\ò][€éàå[\»Z[\‹ù[ù¬àBüB
+              theme: current.theme === "dark" ? "light" : "dark",
+            }))}
+          >
+            <span className={state.theme === "light" ? "active" : ""}><SunIcon /></span>
+            <span className={state.theme === "dark" ? "active" : ""}><MoonIcon /></span>
+          </button>
+          <button className={`reset-button ${resetArmed ? "armed" : ""}`} type="button" onClick={reset}>
+            {resetArmed ? "–¢–æ—á–Ω–æ?" : "–°–±—Ä–æ—Å"}
+          </button>
+        </div>
+      </header>
+
+      <main>
+        <section className="combat-panel">
+          <div className="mode-control">
+            <div>
+              <span className="control-label">–î–∏–Ω–∞–º–∏—á–µ—Å–∫–∞—è –∏–Ω–∏—Ü–∏–∞—Ç–∏–≤–∞</span>
+              <span className="control-description">
+                {state.dynamicInitiative ? "–ë—Ä–æ—Å–æ–∫ d20 –∫–∞–∂–¥—ã–π —Ä–∞—É–Ω–¥" : "–§–∏–∫—Å–∏—Ä–æ–≤–∞–Ω–Ω—ã–π –ø–æ—Ä—è–¥–æ–∫"}
+              </span>
+            </div>
+            <label className="switch">
+              <input
+                type="checkbox"
+                checked={state.dynamicInitiative}
+                onChange={(event) => setInitiativeMode(event.target.checked)}
+              />
+              <span className="switch-track"><span className="switch-thumb" /></span>
+              <span className="switch-value">{state.dynamicInitiative ? "ON" : "OFF"}</span>
+            </label>
+          </div>
+
+          <div className={`round-display ${roundAnimating ? "animating" : ""}`}>
+            <span>–†–∞—É–Ω–¥</span>
+            <strong key={state.round}>{state.round}</strong>
+          </div>
+        </section>
+
+        <section className="roster-section">
+          <div className="roster-heading">
+            <div>
+              <div className="section-kicker">{state.inCombat ? "–û—á–µ—Ä–µ–¥—å —Ö–æ–¥–∞" : "–ü–æ–¥–≥–æ—Ç–æ–≤–∫–∞ –±–æ—è"}</div>
+              <h1>{state.inCombat ? "–£—á–∞—Å—Ç–Ω–∏–∫–∏ –±–æ—è" : "–ë–æ–µ–≤–æ–π –æ—Ç—Ä—è–¥"}</h1>
+            </div>
+            {!state.inCombat && (
+              <button className="button add-button" type="button" onClick={() => setShowAddForm(true)}>
+                <span>+</span> –î–æ–±–∞–≤–∏—Ç—å
+              </button>
+            )}
+          </div>
+
+          {state.creatures.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-die"><D20Icon /></div>
+              <h2>–ó–¥–µ—Å—å –ø–æ–∫–∞ —Ç–∏—Ö–æ</h2>
+              <p>–î–æ–±–∞–≤—å—Ç–µ —É—á–∞—Å—Ç–Ω–∏–∫–æ–≤, —É–∫–∞–∂–∏—Ç–µ —Ä–µ—Å—É—Ä—Å—ã –∏ –Ω–∞—á–Ω–∏—Ç–µ –±–æ–π.</p>
+              <button className="button primary" type="button" onClick={() => setShowAddForm(true)}>
+                + –î–æ–±–∞–≤–∏—Ç—å –ø–µ—Ä–≤–æ–≥–æ
+              </button>
+            </div>
+          ) : (
+            <div className={`creature-list ${roundAnimating ? "round-shuffle" : ""}`}>
+              {state.creatures.map((creature, index) => {
+                const active = state.inCombat && creature.id === state.activeId;
+                const eliminated = creature.failures >= 3;
+                const isDown = creature.hp <= 0;
+                const initiative = state.dynamicInitiative
+                  ? state.inCombat ? creature.currentInitiative ?? 0 : creature.initiativeModifier
+                  : creature.fixedInitiative;
+
+                return (
+                  <article
+                    className={`creature-card ${active ? "active" : ""} ${eliminated ? "eliminated" : ""}`}
+                    key={creature.id}
+                    style={{ "--card-index": index } as React.CSSProperties}
+                    onClick={() => {
+                      if (state.inCombat && !eliminated) {
+                        setState((current) => ({ ...current, activeId: creature.id }));
+                      }
+                    }}
+                  >
+                    <div className="card-accent" />
+                    <div className="card-header">
+                      <div className="turn-number">{String(index + 1).padStart(2, "0")}</div>
+                      <div className="creature-identity">
+                        <div className="name-row">
+                          <h2>{creature.name}</h2>
+                          {eliminated && <span className="status-badge dead">–í—ã–±—ã–ª</span>}
+                          {!eliminated && isDown && <span className="status-badge down">–ü—Ä–∏ —Å–º–µ—Ä—Ç–∏</span>}
+                          {active && <span className="status-badge current">–•–æ–¥</span>}
+                        </div>
+                        <div className="resource-summary">
+                          <span className={isDown ? "danger" : ""}>HP <b>{creature.hp}</b></span>
+                          <span>ME <b>{creature.me}</b></span>
+                          <span>{creature.otherName} <b>{creature.otherValue}</b></span>
+                        </div>
+                      </div>
+
+                      <div className="initiative-box" onClick={(event) => event.stopPropagation()}>
+                        <span>{state.dynamicInitiative && !state.inCombat ? "–ú–æ–¥." : "–ò–Ω–∏—Ü."}</span>
+                        {state.dynamicInitiative && state.inCombat ? (
+                          <strong>{initiative}</strong>
+                        ) : (
+                          <input
+                            type="number"
+                            value={initiative}
+                            aria-label={`–ò–Ω–∏—Ü–∏–∞—Ç–∏–≤–∞ ${creature.name}`}
+                            onChange={(event) => changeInitiativeValue(creature.id, Number(event.target.value) || 0)}
+                          />
+                        )}
+                        {state.dynamicInitiative && state.inCombat && (
+                          <small>{creature.initiativeModifier >= 0 ? "+" : ""}{creature.initiativeModifier}</small>
+                        )}
+                        {creature.initiativeFrozen && <i title="–ò–Ω–∏—Ü–∏–∞—Ç–∏–≤–∞ –∑–∞–º–æ—Ä–æ–∂–µ–Ω–∞">‚óÜ</i>}
+                      </div>
+
+                      {!state.inCombat && (
+                        <button
+                          className="remove-button"
+                          type="button"
+                          aria-label={`–£–¥–∞–ª–∏—Ç—å ${creature.name}`}
+                          onClick={() => setState((current) => ({
+                            ...current,
+                            creatures: current.creatures.filter((item) => item.id !== creature.id),
+                          }))}
+                        >
+                          √ó
+                        </button>
+                      )}
+                    </div>
+
+                    {state.inCombat && !active && isDown && (
+                      <DeathSaves
+                        compact
+                        creature={creature}
+                        onChange={(kind, value) => changeDeathSave(creature.id, kind, value)}
+                      />
+                    )}
+
+                    {active && (
+                      <div className="active-content">
+                        {isDown ? (
+                          <DeathSaves
+                            creature={creature}
+                            onChange={(kind, value) => changeDeathSave(creature.id, kind, value)}
+                          />
+                        ) : (
+                          <div className="resource-grid">
+                            <ResourceEditor
+                              label="HP"
+                              value={creature.hp}
+                              tone="health"
+                              onChange={(value) => updateCreature(creature.id, (current) => ({ ...current, hp: value }))}
+                            />
+                            <ResourceEditor
+                              label="ME"
+                              value={creature.me}
+                              tone="energy"
+                              onChange={(value) => updateCreature(creature.id, (current) => ({ ...current, me: value }))}
+                            />
+                            <ResourceEditor
+                              label={creature.otherName}
+                              value={creature.otherValue}
+                              tone="other"
+                              onChange={(value) => updateCreature(creature.id, (current) => ({ ...current, otherValue: value }))}
+                            />
+                          </div>
+                        )}
+
+                        <div className="turn-navigation">
+                          <button
+                            className="nav-button"
+                            type="button"
+                            disabled={activeTurnIndex <= 0}
+                            onClick={(event) => { event.stopPropagation(); navigate(-1); }}
+                          >
+                            <span>‚Üê</span> –ù–∞–∑–∞–¥
+                          </button>
+                          <div className="turn-progress">
+                            <span>–•–æ–¥</span>
+                            <b>{activeTurnIndex + 1} / {eligibleIds.length}</b>
+                          </div>
+                          {activeTurnIndex === eligibleIds.length - 1 ? (
+                            <button
+                              className="button new-round-button"
+                              type="button"
+                              onClick={(event) => { event.stopPropagation(); startNewRound(); }}
+                            >
+                              <span className="spin-icon">‚Üª</span> –ù–æ–≤—ã–π —Ä–∞—É–Ω–¥
+                            </button>
+                          ) : (
+                            <button
+                              className="nav-button forward"
+                              type="button"
+                              onClick={(event) => { event.stopPropagation(); navigate(1); }}
+                            >
+                              –î–∞–ª–µ–µ <span>‚Üí</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          )}
+
+          {!state.inCombat && state.creatures.length > 0 && (
+            <button className="button combat-button" type="button" onClick={startCombat}>
+              <D20Icon />
+              –ù–∞—á–∞—Ç—å –±–æ–π
+            </button>
+          )}
+        </section>
+      </main>
+
+      {showAddForm && (
+        <AddCreatureForm
+          dynamic={state.dynamicInitiative}
+          onClose={() => setShowAddForm(false)}
+          onSubmit={addCreature}
+        />
+      )}
+    </div>
+  );
+}
+
+export default App;
