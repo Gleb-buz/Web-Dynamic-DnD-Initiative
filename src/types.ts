@@ -1,4 +1,6 @@
-export type Creature = {
+export type Theme = "light" | "dark";
+
+export interface Creature {
   id: string;
   order: number;
   name: string;
@@ -6,17 +8,30 @@ export type Creature = {
   me: number;
   otherName: string;
   otherValue: number;
-  initiative: number;
-  modifier: number;
-  frozen: boolean;
+  initiativeModifier: number;
+  fixedInitiative: number;
+  currentInitiative: number | null;
+  initiativeFrozen: boolean;
   successes: number;
   failures: number;
-};
+}
 
-export type AppState = {
-  dynamic: boolean;
+export interface TrackerState {
+  creatures: Creature[];
+  dynamicInitiative: boolean;
   round: number;
   inCombat: boolean;
   activeId: string | null;
-  creatures: Creature[];
-};
+  theme: Theme;
+}
+
+export type CreatureDraft = Pick<
+  Creature,
+  | "name"
+  | "hp"
+  | "me"
+  | "otherName"
+  | "otherValue"
+  | "initiativeModifier"
+  | "fixedInitiative"
+>;

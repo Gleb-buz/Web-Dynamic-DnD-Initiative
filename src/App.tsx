@@ -1,426 +1,521 @@
-import { useEffect, useMemo, useState } from 'react';
-import { rollD20 } from './utils/dice';
-import { clearState, loadState, saveState } from './utils/storage';
-import { sortByInitiative } from './utils/sort';
-import { AppState, Creature } from './types';
+import { useEffect, useMemo, useState } from "react";
+import type { Creature, CreatureDraft, TrackerState } from "./types";
+import {
+  STORAGE_KEY,
+  createId,
+  createInitialState,
+  firstEligibleId,
+  loadState,
+  rollDynamicInitiative,
+  saveState,
+  sortFixedInitiative,
+} from "./utils";
 
-const defaultState: AppState = {
-  dynamic: true,
-  round: 0,
-  inCombat: false,
-  activeId: null,
-  creatures: [],
-};
+const STEPS = [-10, -5, -1, 1, 5, 10];
 
-const adjustBetween = (value: number) => Math.max(0, Math.min(3, value));
-
-const getFirstActiveId = (creatures: Creature[]) =>
-  creatures.find((c) => c.failures < 3)?.id ?? null;
-
-const createId = () => crypto.randomUUID?.() ?? Math.random().toString(36).slice(2);
-
-const createOrder = (creatures: Creature[]) =>
-  creatures.reduce((max, c) => Math.max(max, c.order), 0) + 1;
-
-const updateInitiatives = (creatures: Creature[], dynamic: boolean) => {
-  if (dynamic) {
-    return creatures.map((creature) => {
-      const roll = rollD20() + (creature.modifier ?? 0);
-      if (creature.hp > 0) {
-        return { ...creature, initiative: roll, frozen: false };
-      }
-      return {
-        ...creature,
-        initiative: creature.frozen && creature.initiative ? creature.initiative : roll,
-        frozen: true,
-      };
-    });
-  }
-
-  return creatures.map((creature) => ({
-    ...creature,
-    initiative: creature.initiative ?? 0,
-  }));
-};
-
-const getAvailable = (creatures: Creature[]) => creatures.filter((c) => c.failures < 3);
-
-function App() {
-  const [state, setState] = useState<AppState>(() => loadState() ?? defaultState);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
-    name: '',
-    hp: '',
-    me: '',
-    otherName: '',
-    otherValue: '',
-    initiative: '',
-    modifier: '',
-  });
-
-  useEffect(() => {
-    saveState(state);
-  }, [state]);
-
-  const activeIndexInfo = useMemo(() => {
-    const available = getAvailable(state.creatures);
-    const idx = available.findIndex((c) => c.id === state.activeId);
-    return { available, idx };
-  }, [state.activeId, state.creatures]);
-
-  const handleAdd = () => {
-    const name = form.name.trim();
-    if (!name) return;
-    const hp = Number(form.hp) || 0;
-    const me = Number(form.me) || 0;
-    const otherName = form.otherName.trim() || 'Ğ ĞµÑÑƒÑ€Ñ';
-    const otherValue = Number(form.otherValue) || 0;
-    const initiative = Number(form.initiative) || 0;
-    const modifier = Number(form.modifier) || 0;
-
-    const newCreature: Creature = {
-      id: createId(),
-      order: createOrder(state.creatures),
-      name,
-      hp,
-      me,
-      otherName,
-      otherValue,
-      initiative: state.dynamic ? 0 : initiative,
-      modifier: state.dynamic ? modifier : 0,
-      frozen: false,
-      successes: 0,
-      failures: 0,
-    };
-
-    setState((prev) => ({
-      ...prev,
-      creatures: [...prev.creatures, newCreature],
-      activeId: prev.activeId ?? newCreature.id,
-    }));
-    setShowForm(false);
-    setForm({ name: '', hp: '', me: '', otherName: '', otherValue: '', initiative: '', modifier: '' });
-  };
-
-  const handleStart = () => {
-    if (!state.creatures.length) return;
-    const rolled = updateInitiatives(state.creatures, state.dynamic);
-    const sorted = sortByInitiative(rolled);
-    setState((prev) => ({
-      ...prev,
-      inCombat: true,
-      creatures: sorted,
-      activeId: getFirstActiveId(sorted),
-    }));
-  };
-
-  const handleNewRound = () => {
-    if (!state.inCombat) return;
-    const nextRound = state.round + 1;
-    const updated = state.dynamic ? updateInitiatives(state.creatures, true) : [...state.creatures];
-    const ordered = state.dynamic ? sortByInitiative(updated) : updated;
-    setState((prev) => ({
-      ...prev,
-      round: nextRound,
-      creatures: ordered,
-      activeId: getFirstActiveId(ordered),
-    }));
-  };
-
-  const handleReset = () => {
-    setState(defaultState);
-    clearState();
-  };
-
-  const toggleDynamic = () => {
-    setState((prev) => {
-      const nextDynamic = !prev.dynamic;
-      let creatures = [...prev.creatures];
-      if (prev.inCombat && !nextDynamic) {
-        creatures = sortByInitiative(
-          creatures.map((c) => ({ ...c, initiative: c.initiative ?? 0 }))
-        );
-      }
-      return { ...prev, dynamic: nextDynamic, creatures };
-    });
-  };
-
-  const updateCreature = (id: string, updater: (c: Creature) => Creature) => {
-    setState((prev) => ({
-      ...prev,
-      creatures: prev.creatures.map((c) => (c.id === id ? updater(c) : c)),
-    }));
-  };
-
-  const adjustValue = (id: string, key: 'hp' | 'me' | 'otherValue', delta: number) => {
-    updateCreature(id, (c) => ({ ...c, [key]: c[key] + delta } as Creature));
-  };
-
-  const setValue = (id: string, key: 'hp' | 'me' | 'otherValue', value: number) => {
-    updateCreature(id, (c) => ({ ...c, [key]: value }));
-  };
-
-  const setDeathCount = (id: string, key: 'successes' | 'failures', value: number) => {
-    updateCreature(id, (c) => ({ ...c, [key]: adjustBetween(value) }));
-  };
-
-  const handleNext = () => {
-    const { available, idx } = activeIndexInfo;
-    if (idx === -1) return;
-    const next = available[idx + 1];
-    if (next) {
-      setState((prev) => ({ ...prev, activeId: next.id }));
-    }
-  };
-
-  const handlePrev = () => {
-    const { available, idx } = activeIndexInfo;
-    if (idx <= 0) return;
-    const prevItem = available[idx - 1];
-    if (prevItem) {
-      setState((prev) => ({ ...prev, activeId: prevItem.id }));
-    }
-  };
-
-  const renderDeathRow = (creature: Creature) => (
-    <div className="death-saves">
-      <div className="death-row">
-        <span>Ğ£ÑĞ¿ĞµÑ…</span>
-        <div className="pips">
-          {[0, 1, 2].map((i) => (
-            <button
-              key={`s-${i}`}
-              className={i < creature.successes ? 'pip active' : 'pip'}
-              onClick={() =>
-                setDeathCount(
-                  creature.id,
-                  'successes',
-                  i < creature.successes ? i : i + 1
-                )
-              }
-              type="button"
-            />
-          ))}
-        </div>
-      </div>
-      <div className="death-row">
-        <span>ĞŸÑ€Ğ¾Ğ²Ğ°Ğ»</span>
-        <div className="pips">
-          {[0, 1, 2].map((i) => (
-            <button
-              key={`f-${i}`}
-              className={i < creature.failures ? 'pip active fail' : 'pip fail'}
-              onClick={() =>
-                setDeathCount(
-                  creature.id,
-                  'failures',
-                  i < creature.failures ? i : i + 1
-                )
-              }
-              type="button"
-            />
-          ))}
-        </div>
-      </div>
-    </div>
+function SunIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42" />
+    </svg>
   );
+}
 
-  const isLastActive = activeIndexInfo.idx === activeIndexInfo.available.length - 1;
-  const activeCreature = state.creatures.find((c) => c.id === state.activeId);
+function MoonIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z" />
+    </svg>
+  );
+}
+
+function D20Icon() {
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path d="M24 3 43 14v20L24 45 5 34V14L24 3Z" />
+      <path d="m5 14 19 9 19-9M24 23v22M14 38l10-15 10 15M15 9l9 14L33 9" />
+    </svg>
+  );
+}
+
+interface DeathSavesProps {
+  creature: Creature;
+  compact?: boolean;
+  onChange: (kind: "successes" | "failures", value: number) => void;
+}
+
+function DeathSaves({ creature, compact = false, onChange }: DeathSavesProps) {
+  const row = (kind: "successes" | "failures", label: string) => {
+    const count = creature[kind];
+    return (
+      <div className="save-row">
+        <span>{label}</span>
+        <div className="save-pips" aria-label={`${label}: ${count} Ğ¸Ğ· 3`}>
+          {[1, 2, 3].map((value) => (
+            <button
+              className={`save-pip ${value <= count ? "filled" : ""} ${kind}`}
+              key={value}
+              type="button"
+              aria-label={`${label} ${value}`}
+              onClick={(event) => {
+                event.stopPropagation();
+                onChange(kind, count === value ? value - 1 : value);
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="app">
-      <header className="top-bar">
-        <div className="toggle" onClick={toggleDynamic} role="button" tabIndex={0}>
-          <div className={`switch ${state.dynamic ? 'on' : 'off'}`}>
-            <div className="knob" />
-          </div>
-          <span>Ğ”Ğ¸Ğ½Ğ°Ğ¼Ğ¸Ñ‡ĞµÑĞºĞ°Ñ Ğ¸Ğ½Ğ¸Ñ†Ğ¸Ğ°Ñ‚Ğ¸Ğ²Ğ°: {state.dynamic ? 'On' : 'Off'}</span>
-        </div>
-        <div className="round">Ğ Ğ°ÑƒĞ½Ğ´: {state.round}</div>
-        <button className="reset" onClick={handleReset} type="button">
-          Ğ¡Ğ±Ñ€Ğ¾Ñ
-        </button>
-      </header>
-
-      <div className="actions">
-        {!state.inCombat && (
-          <button className="add" onClick={() => setShowForm((p) => !p)} type="button">
-            + Ğ”Ğ¾Ğ±Ğ°Ğ²Ğ¸Ñ‚ÑŒ
-          </button>
-        )}
-        {!state.inCombat && state.creatures.length > 0 && (
-          <button className="start" onClick={handleStart} type="button">
-            Ğ‘Ğ¾Ğ¹
-          </button>
-        )}
-        {state.inCombat && (
-          <button className="start" onClick={handleNewRound} type="button">
-            ĞĞ¾Ğ²Ñ‹Ğ¹ Ñ€Ğ°ÑƒĞ½Ğ´
-          </button>
-        )}
-      </div>
-
-      {showForm && !state.inCombat && (
-        <div className="card form">
-          <div className="field">
-            <label>Ğ˜Ğ¼Ñ</label>
-            <input
-              value={form.name}
-              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-              placeholder="ĞĞ±ÑĞ·Ğ°Ñ‚ĞµĞ»ÑŒĞ½Ğ¾Ğµ"
-            />
-          </div>
-          <div className="field triple">
-            <div>
-              <label>HP</label>
-              <input
-                value={form.hp}
-                onChange={(e) => setForm((p) => ({ ...p, hp: e.target.value }))}
-                inputMode="numeric"
-              />
-            </div>
-            <div>
-              <label>ME</label>
-              <input
-                value={form.me}
-                onChange={(e) => setForm((p) => ({ ...p, me: e.target.value }))}
-                inputMode="numeric"
-              />
-            </div>
-            <div>
-              <label>{form.otherName || 'Ğ ĞµÑÑƒÑ€Ñ'}</label>
-              <input
-                value={form.otherValue}
-                onChange={(e) => setForm((p) => ({ ...p, otherValue: e.target.value }))}
-                inputMode="numeric"
-              />
-            </div>
-          </div>
-          <div className="field">
-            <label>ĞĞ°Ğ·Ğ²Ğ°Ğ½Ğ¸Ğµ Ñ€ĞµÑÑƒÑ€ÑĞ°</label>
-            <input
-              value={form.otherName}
-              onChange={(e) => setForm((p) => ({ ...p, otherName: e.target.value }))}
-              placeholder="ĞĞ°Ğ¿Ñ€Ğ¸Ğ¼ĞµÑ€, Ğ²Ñ‹Ğ½Ğ¾ÑĞ»Ğ¸Ğ²Ğ¾ÑÑ‚ÑŒ"
-            />
-          </div>
-          <div className="field">
-            <label>{state.dynamic ? 'ĞœĞ¾Ğ´Ğ¸Ñ„Ğ¸ĞºĞ°Ñ‚Ğ¾Ñ€ Ğ¸Ğ½Ğ¸Ñ†Ğ¸Ğ°Ñ‚Ğ¸Ğ²Ñ‹' : 'Ğ˜Ğ½Ğ¸Ñ†Ğ¸Ğ°Ñ‚Ğ¸Ğ²Ğ°'}</label>
-            <input
-              value={state.dynamic ? form.modifier : form.initiative}
-              onChange={(e) =>
-                setForm((p) =>
-                  state.dynamic
-                    ? { ...p, modifier: e.target.value }
-                    : { ...p, initiative: e.target.value }
-                )
-              }
-              inputMode="numeric"
-            />
-          </div>
-          <button className="start" onClick={handleAdd} type="button">
-            Ğ”Ğ¾Ğ±Ğ°Ğ²Ğ¸Ñ‚ÑŒ
-          </button>
-        </div>
-      )}
-
-      <div className="list">
-        {state.creatures.map((creature) => {
-          const isActive = state.inCombat && creature.id === state.activeId;
-          const eliminated = creature.failures >= 3;
-          const collapsed = state.inCombat && !isActive;
-          return (
-            <div
-              key={creature.id}
-              className={`card ${isActive ? 'active' : ''} ${eliminated ? 'dead' : ''} ${collapsed ? 'collapsed' : ''}`}
-            >
-              <div className="card-header">
-                <div>
-                  <div className="name">{creature.name}</div>
-                  <div className="initiative">
-                    {state.dynamic ? 'Ğ¸Ğ½Ğ¸Ñ†. Ğ¼Ğ¾Ğ´: ' + creature.modifier : 'Ğ¸Ğ½Ğ¸Ñ†Ğ¸Ğ°Ñ‚Ğ¸Ğ²Ğ°: ' + creature.initiative}
-                    {state.inCombat && state.dynamic && ` | Ñ€Ğ¾Ğ»Ğ»: ${creature.initiative}`}
-                  </div>
-                </div>
-                <div className="round-tag">#{creature.order}</div>
-              </div>
-              <div className="stats">
-                <div className="stat">HP: {creature.hp}</div>
-                <div className="stat">ME: {creature.me}</div>
-                <div className="stat">
-                  {creature.otherName}: {creature.otherValue}
-                </div>
-              </div>
-              <div className="mini-death">{renderDeathRow(creature)}</div>
-
-              {isActive && creature.hp <= 0 ? (
-                <div className="main-block">
-                  <div className="section-title">Death saves</div>
-                  {renderDeathRow(creature)}
-                </div>
-              ) : (
-                isActive && (
-                  <div className="main-block">
-                    <div className="section-title">Ğ£Ğ¿Ñ€Ğ°Ğ²Ğ»ĞµĞ½Ğ¸Ğµ</div>
-                    {(
-                      [
-                        { label: 'HP', key: 'hp' as const, value: creature.hp },
-                        { label: 'ME', key: 'me' as const, value: creature.me },
-                        {
-                          label: creature.otherName,
-                          key: 'otherValue' as const,
-                          value: creature.otherValue,
-                        },
-                      ]
-                    ).map((item) => (
-                      <div className="control-row" key={item.key}>
-                        <div className="control-label">{item.label}</div>
-                        <div className="control-buttons">
-                          {[-10, -5, -1, +1, +5, +10].map((step) => (
-                            <button
-                              type="button"
-                              key={step}
-                              onClick={() => adjustValue(creature.id, item.key, step)}
-                            >
-                              {step > 0 ? `+${step}` : step}
-                            </button>
-                          ))}
-                        </div>
-                        <input
-                          className="inline-input"
-                          type="number"
-                          value={item.value}
-                          onChange={(e) => setValue(creature.id, item.key, Number(e.target.value) || 0)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {state.inCombat && activeCreature && (
-        <div className="nav">
-          <button type="button" onClick={handlePrev} disabled={activeIndexInfo.idx <= 0}>
-            â† ĞĞ°Ğ·Ğ°Ğ´
-          </button>
-          {isLastActive ? (
-            <button type="button" className="start" onClick={handleNewRound}>
-              ĞĞ¾Ğ²Ñ‹Ğ¹ Ñ€Ğ°ÑƒĞ½Ğ´
-            </button>
-          ) : (
-            <button type="button" onClick={handleNext}>
-              Ğ’Ğ¿ĞµÑ€Ñ‘Ğ´ â†’
-            </button>
-          )}
-        </div>
-      )}
+    <div className={`death-saves ${compact ? "compact" : ""}`}>
+      {!compact && <div className="section-kicker">Ğ¡Ğ¿Ğ°ÑĞ±Ñ€Ğ¾ÑĞºĞ¸ Ğ¾Ñ‚ ÑĞ¼ĞµÑ€Ñ‚Ğ¸</div>}
+      {row("successes", compact ? "Ğ£" : "Ğ£ÑĞ¿ĞµÑ…")}
+      {row("failures", compact ? "ĞŸ" : "ĞŸÑ€Ğ¾Ğ²Ğ°Ğ»")}
     </div>
   );
 }
 
-export default App;
+interface ResourceEditorProps {
+  label: string;
+  value: number;
+  tone: "health" | "energy" | "other";
+  onChange: (value: number) => void;
+}
+
+function ResourceEditor({ label, value, tone, onChange }: ResourceEditorProps) {
+  return (
+    <div className={`resource-editor ${tone}`}>
+      <div className="resource-heading">
+        <span>{label}</span>
+        <input
+          type="number"
+          value={value}
+          aria-label={label}
+          onChange={(event) => onChange(Number(event.target.value) || 0)}
+        />
+      </div>
+      <div className="step-grid">
+        {STEPS.map((step) => (
+          <button
+            key={step}
+            type="button"
+            className={step < 0 ? "negative" : "positive"}
+            onClick={() => onChange(value + step)}
+          >
+            {step > 0 ? `+${step}` : step}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface AddCreatureFormProps {
+  dynamic: boolean;
+  onClose: () => void;
+  onSubmit: (draft: CreatureDraft) => void;
+}
+
+function AddCreatureForm({ dynamic, onClose, onSubmit }: AddCreatureFormProps) {
+  const [draft, setDraft] = useState<CreatureDraft>({
+    name: "",
+    hp: 10,
+    me: 0,
+    otherName: "Ğ ĞµÑÑƒÑ€Ñ",
+    otherValue: 0,
+    initiativeModifier: 0,
+    fixedInitiative: 0,
+  });
+  const [error, setError] = useState("");
+
+  const setNumber = (field: keyof CreatureDraft, value: string) => {
+    setDraft((current) => ({ ...current, [field]: Number(value) || 0 }));
+  };
+
+  return (
+    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <form
+        className="add-form"
+        onMouseDown={(event) => event.stopPropagation()}
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!draft.name.trim()) {
+            setError("Ğ’Ğ²ĞµĞ´Ğ¸Ñ‚Ğµ Ğ¸Ğ¼Ñ ÑÑƒÑ‰ĞµÑÑ‚Ğ²Ğ°");
+            return;
+          }
+          onSubmit({
+            ...draft,
+            name: draft.name.trim(),
+            otherName: draft.otherName.trim() || "Ğ ĞµÑÑƒÑ€Ñ",
+          });
+        }}
+      >
+        <div className="form-heading">
+          <div>
+            <div className="section-kicker">ĞĞ¾Ğ²Ñ‹Ğ¹ ÑƒÑ‡Ğ°ÑÑ‚Ğ½Ğ¸Ğº</div>
+            <h2>Ğ”Ğ¾Ğ±Ğ°Ğ²Ğ¸Ñ‚ÑŒ ÑÑƒÑ‰ĞµÑÑ‚Ğ²Ğ¾</h2>
+          </div>
+          <button className="icon-button" type="button" onClick={onClose} aria-label="Ğ—Ğ°ĞºÑ€Ñ‹Ñ‚ÑŒ">
+            Ã—
+          </button>
+        </div>
+
+        <label className="field full">
+          <span>Ğ˜Ğ¼Ñ</span>
+          <input
+            autoFocus
+            value={draft.name}
+            placeholder="ĞĞ°Ğ¿Ñ€Ğ¸Ğ¼ĞµÑ€, Ğ’Ğ°Ñ€Ğ²Ğ°Ñ€"
+            onChange={(event) => {
+              setError("");
+              setDraft((current) => ({ ...current, name: event.target.value }));
+            }}
+          />
+          {error && <small className="field-error">{error}</small>}
+        </label>
+
+        <div className="form-grid">
+          <label className="field">
+            <span>HP</span>
+            <input type="number" value={draft.hp} onChange={(event) => setNumber("hp", event.target.value)} />
+          </label>
+          <label className="field">
+            <span>ME</span>
+            <input type="number" value={draft.me} onChange={(event) => setNumber("me", event.target.value)} />
+          </label>
+          <label className="field">
+            <span>Ğ”Ñ€ÑƒĞ³Ğ¾Ğ¹ Ñ€ĞµÑÑƒÑ€Ñ</span>
+            <input
+              value={draft.otherName}
+              onChange={(event) => setDraft((current) => ({ ...current, otherName: event.target.value }))}
+            />
+          </label>
+          <label className="field">
+            <span>Ğ—Ğ½Ğ°Ñ‡ĞµĞ½Ğ¸Ğµ</span>
+            <input
+              type="number"
+              value={draft.otherValue}
+              onChange={(event) => setNumber("otherValue", event.target.value)}
+            />
+          </label>
+        </div>
+
+        <label className="field full initiative-field">
+          <span>{dynamic ? "ĞœĞ¾Ğ´Ğ¸Ñ„Ğ¸ĞºĞ°Ñ‚Ğ¾Ñ€ Ğ¸Ğ½Ğ¸Ñ†Ğ¸Ğ°Ñ‚Ğ¸Ğ²Ñ‹" : "Ğ˜Ğ½Ğ¸Ñ†Ğ¸Ğ°Ñ‚Ğ¸Ğ²Ğ°"}</span>
+          <input
+            type="number"
+            value={dynamic ? draft.initiativeModifier : draft.fixedInitiative}
+            onChange={(event) =>
+              setNumber(dynamic ? "initiativeModifier" : "fixedInitiative", event.target.value)
+            }
+          />
+        </label>
+
+        <div className="form-actions">
+          <button className="button secondary" type="button" onClick={onClose}>ĞÑ‚Ğ¼ĞµĞ½Ğ°</button>
+          <button className="button primary" type="submit">Ğ”Ğ¾Ğ±Ğ°Ğ²Ğ¸Ñ‚ÑŒ</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function App() {
+  const [state, setState] = useState<TrackerState>(loadState);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [roundAnimating, setRoundAnimating] = useState(false);
+  const [resetArmed, setResetArmed] = useState(false);
+
+  useEffect(() => {
+    saveState(state);
+    document.documentElement.dataset.theme = state.theme;
+    document.documentElement.style.colorScheme = state.theme;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute(
+      "content",
+      state.theme === "dark" ? "#15110f" : "#f4efe7",
+    );
+  }, [state]);
+
+  useEffect(() => {
+    if (!state.inCombat) return;
+    const active = state.creatures.find((creature) => creature.id === state.activeId);
+    if (!active || active.failures >= 3) {
+      const nextId = firstEligibleId(state.creatures);
+      if (nextId !== state.activeId) {
+        setState((current) => ({ ...current, activeId: nextId }));
+      }
+    }
+  }, [state.activeId, state.creatures, state.inCombat]);
+
+  const activeCreature = state.creatures.find((creature) => creature.id === state.activeId) ?? null;
+  const eligibleIds = useMemo(
+    () => state.creatures.filter((creature) => creature.failures < 3).map((creature) => creature.id),
+    [state.creatures],
+  );
+  const activeTurnIndex = activeCreature ? eligibleIds.indexOf(activeCreature.id) : -1;
+
+  const updateCreature = (id: string, updater: (creature: Creature) => Creature) => {
+    setState((current) => ({
+      ...current,
+      creatures: current.creatures.map((creature) =>
+        creature.id === id ? updater(creature) : creature,
+      ),
+    }));
+  };
+
+  const changeDeathSave = (
+    id: string,
+    kind: "successes" | "failures",
+    value: number,
+  ) => {
+    setState((current) => {
+      const creatures = current.creatures.map((creature) =>
+        creature.id === id ? { ...creature, [kind]: value } : creature,
+      );
+      const activeStillEligible = creatures.some(
+        (creature) => creature.id === current.activeId && creature.failures < 3,
+      );
+      return {
+        ...current,
+        creatures,
+        activeId: activeStillEligible ? current.activeId : firstEligibleId(creatures),
+      };
+    });
+  };
+
+  const setInitiativeMode = (dynamicInitiative: boolean) => {
+    setState((current) => {
+      if (!current.inCombat || dynamicInitiative) {
+        return { ...current, dynamicInitiative };
+      }
+      const creatures = sortFixedInitiative(current.creatures);
+      return {
+        ...current,
+        dynamicInitiative,
+        creatures,
+        activeId: firstEligibleId(creatures),
+      };
+    });
+  };
+
+  const addCreature = (draft: CreatureDraft) => {
+    setState((current) => ({
+      ...current,
+      creatures: [
+        ...current.creatures,
+        {
+          ...draft,
+          id: createId(),
+          order: Math.max(-1, ...current.creatures.map((creature) => creature.order)) + 1,
+          currentInitiative: null,
+          initiativeFrozen: false,
+          successes: 0,
+          failures: 0,
+        },
+      ],
+    }));
+    setShowAddForm(false);
+  };
+
+  const startCombat = () => {
+    setState((current) => {
+      const creatures = current.dynamicInitiative
+        ? rollDynamicInitiative(current.creatures, true)
+        : sortFixedInitiative(current.creatures);
+      return {
+        ...current,
+        creatures,
+        inCombat: true,
+        activeId: firstEligibleId(creatures),
+      };
+    });
+  };
+
+  const navigate = (direction: -1 | 1) => {
+    const nextIndex = activeTurnIndex + direction;
+    if (nextIndex >= 0 && nextIndex < eligibleIds.length) {
+      setState((current) => ({ ...current, activeId: eligibleIds[nextIndex] }));
+    }
+  };
+
+  const startNewRound = () => {
+    setRoundAnimating(true);
+    window.setTimeout(() => setRoundAnimating(false), 650);
+    setState((current) => {
+      const creatures = current.dynamicInitiative
+        ? rollDynamicInitiative(current.creatures, false)
+        : current.creatures;
+      return {
+        ...current,
+        creatures,
+        round: current.round + 1,
+        activeId: firstEligibleId(creatures),
+      };
+    });
+  };
+
+  const changeInitiativeValue = (id: string, value: number) => {
+    setState((current) => {
+      const updated = current.creatures.map((creature) =>
+        creature.id === id
+          ? {
+              ...creature,
+              [current.dynamicInitiative ? "initiativeModifier" : "fixedInitiative"]: value,
+            }
+          : creature,
+      );
+      const creatures = current.inCombat && !current.dynamicInitiative
+        ? sortFixedInitiative(updated)
+        : updated;
+      return { ...current, creatures };
+    });
+  };
+
+  const reset = () => {
+    if (!resetArmed) {
+      setResetArmed(true);
+      window.setTimeout(() => setResetArmed(false), 2500);
+      return;
+    }
+    localStorage.removeItem(STORAGE_KEY);
+    setState(createInitialState());
+    setResetArmed(false);
+    setShowAddForm(false);
+  };
+
+  return (
+    <div className="app-shell">
+      <header className="topbar">
+        <div className="brand" aria-label="D&D Initiative Tracker">
+          <D20Icon />
+          <div>
+            <span className="brand-name">INITIATIVE</span>
+            <span className="brand-subtitle">D&D combat tracker</span>
+          </div>
+        </div>
+
+        <div className="topbar-controls">
+          <button
+            className="theme-toggle"
+            type="button"
+            aria-label={`Ğ’ĞºĞ»ÑÑ‡Ğ¸Ñ‚ÑŒ ${state.theme === "dark" ? "ÑĞ²ĞµÑ‚Ğ»ÑƒÑ" : "Ñ‚Ñ‘Ğ¼Ğ½ÑƒÑ"} Ñ‚ĞµĞ¼Ñƒ`}
+            onClick={() => setState((current) => ({
+              ...current,
+              uóİv¶‰ËkºwµçY
+NÂˆ›Û\Ú^™NˆL\Âˆ›Û]ÙZYÚˆÂˆ]\‹\ÜXÚ[™ÎˆŒ[NÂŸB‚‹˜Ü™X]\™KZY[]HÂˆZ[‹]ÚYˆÂŸB‚‹›˜[YK\›İÈÂˆ\Ü^Nˆ›^Âˆ[YÛ‹Z][\ÎˆÙ[\ÂˆØ\ˆÂˆZ[‹]ÚYˆÂŸB‚‹›˜[YK\›İÈˆÂˆİ™\™›İÎˆY[ÂˆX\™Ú[ˆÂˆ›ÛY˜[Z[Nˆ”ÜXİ˜[‹Ù[Ü™ÚXKÙ\šYÂˆ›Û\Ú^™NˆŒÂˆ[™KZZYÚˆKŒNÂˆ^[İ™\™›İÎˆ[\Ú\ÎÂˆÚ]K\ÜXÙNˆ›İÜ˜\ÂŸB‚‹œ™\Ûİ\˜ÙK\İ[[X\HÂˆ\Ü^Nˆ›^Âˆ›^]Ü˜\ˆÜ˜\ÂˆØ\ˆÜM\ÂˆX\™Ú[‹]ÜˆÂˆÛÛÜˆ˜\ŠK]^[]]Y
+NÂˆ›Û\Ú^™NˆL\Âˆ›Û]ÙZYÚˆŒÂŸB‚‹œ™\Ûİ\˜ÙK\İ[[X\HˆÂˆX\™Ú[‹[YˆÜÂˆÛÛÜˆ˜\ŠK]^
+NÂˆ›Û\Ú^™NˆLœÂŸB‚‹œ™\Ûİ\˜ÙK\İ[[X\H™[™Ù\‹‹œ™\Ûİ\˜ÙK\İ[[X\H™[™Ù\ˆˆÂˆÛÛÜˆ˜\ŠKY[™Ù\ŠNÂŸB‚‹œİ]\ËX˜YÙHÂˆ›^ˆ]]ÎÂˆ›Ü™\‹\˜Y]\ÎˆNN\ÂˆY[™ÎˆÜÂˆ›Û\Ú^™NˆÂˆ›Û]ÙZYÚˆÂˆ]\‹\ÜXÚ[™ÎˆŒ[NÂˆ^]˜[œÙ›Ü›Nˆ\\˜Ø\ÙNÂŸB‚‹œİ]\ËX˜YÙK˜İ\œ™[ÂˆÛÛÜˆ˜\ŠKXœ˜[™]^
+NÂˆ˜XÚÙÜ›İ[™ˆ˜\ŠKXœ˜[™\ÛÙ
+NÂˆ[š[X][Ûˆ˜YÙK\[ÙHœÈX\ÙKZ[‹[İ][™š[š]NÂŸB‚‹œİ]\ËX˜YÙK™İÛˆÂˆÛÛÜˆÎMXŒMÂˆ˜XÚÙÜ›İ[™ˆÛÛÜ‹[Z^
+[ˆÜ™Ø‹˜\ŠKYÛÛ
+HŒ	K˜[œÜ\™[
+NÂŸB‚‹œİ]\ËX˜YÙK™XYÂˆÛÛÜˆ˜\ŠKY[™Ù\ŠNÂˆ˜XÚÙÜ›İ[™ˆ˜\ŠKY[™Ù\‹\ÛÙ
+NÂŸB‚‹š[š]X]]™KX›ŞÂˆÜÚ][Ûˆ™[]]™NÂˆ\Ü^NˆÜšYÂˆZ[‹]ÚYˆŒÂˆZ[‹ZZYÚˆMœÂˆXÙKXÛÛ[ˆÙ[\Âˆ›Ü™\ˆ\ÛÛY˜\ŠK[[™JNÂˆ›Ü™\‹\˜Y]\ÎˆLœÂˆ˜XÚÙÜ›İ[™ˆ˜\ŠKX™Ë\ÛÙ
+NÂˆ^X[YÛˆÙ[\ÂŸB‚‹š[š]X]]™KX›ŞÜ[ˆÂˆÛÛÜˆ˜\ŠK]^[]]Y
+NÂˆ›Û\Ú^™NˆÂˆ›Û]ÙZYÚˆÂˆ]\‹\ÜXÚ[™ÎˆŒY[NÂˆ^]˜[œÙ›Ü›Nˆ\\˜Ø\ÙNÂŸB‚‹š[š]X]]™KX›Şİ›Û™ÈÂˆ›ÛY˜[Z[Nˆ”ÜXİ˜[‹Ù[Ü™ÚXKÙ\šYÂˆ›Û\Ú^™NˆŒÜÂˆ[™KZZYÚˆKŒNÂŸB‚‹š[š]X]]™KX›Ş[œ]ÂˆÚYˆMÂˆ›Ü™\ˆÂˆ˜XÚÙÜ›İ[™ˆ˜[œÜ\™[ÂˆÛÛÜˆ˜\ŠK]^
+NÂˆ›ÛY˜[Z[Nˆ”ÜXİ˜[‹Ù[Ü™ÚXKÙ\šYÂˆ›Û\Ú^™NˆŒ\Âˆ›Û]ÙZYÚˆÌÂˆ^X[YÛˆÙ[\ÂŸB‚‹š[š]X]]™KX›Ş[œ]™›Øİ\ÈÂˆİ][™NˆÂŸB‚‹š[š]X]]™KX›ŞÛX[ÂˆÜÚ][ÛˆXœÛÛ]NÂˆšYÚˆM\Âˆ›İÛNˆM\ÂˆZ[‹]ÚYˆŒœÂˆ›Ü™\‹\˜Y]\ÎˆÜÂˆY[™ÎˆœÂˆÛÛÜˆ˜\ŠKXœ˜[™]^
+NÂˆ˜XÚÙÜ›İ[™ˆ˜\ŠKXœ˜[™\ÛÙ
+NÂˆ›Û\Ú^™NˆÂˆ›Û]ÙZYÚˆÂŸB‚‹š[š]X]]™KX›ŞHÂˆÜÚ][ÛˆXœÛÛ]NÂˆÜˆM\ÂˆšYÚˆMÂˆÛÛÜˆ˜\ŠKX›YJNÂˆ›Û\Ú^™Nˆ\Âˆ›Û\İ[Nˆ›Ü›X[ÂŸB‚‹œ™[[İ™KX]ÛˆÂˆ\Ü^NˆÜšYÂˆÚYˆÌÂˆZYÚˆÌÂˆXÙKZ][\ÎˆÙ[\Âˆ›Ü™\‹\˜Y]\ÎˆÂˆÛÛÜˆ˜\ŠK]^[]]Y
+NÂˆ›Û\Ú^™NˆŒÂˆ˜[œÚ][ÛˆÛÛÜˆM\ÈX\ÙK˜XÚÙÜ›İ[™M\ÈX\ÙK˜[œÙ›Ü›HLŒ\ÈX\ÙNÂŸB‚‹œ™[[İ™KX]Ûšİ™\ˆÂˆÛÛÜˆ˜\ŠKY[™Ù\ŠNÂˆ˜XÚÙÜ›İ[™ˆ˜\ŠKY[™Ù\‹\ÛÙ
+NÂˆ˜[œÙ›Ü›Nˆ›İ]J™YÊNÂŸB‚‹˜Xİ]™KXÛÛ[ÂˆY[™ÎˆNNÂˆ[š[X][ÛˆÛÛ[\™]™X[ÌÌ\ÈX\ÙH›İÂŸB‚‹œ™\Ûİ\˜ÙKYÜšYÂˆ\Ü^NˆÜšYÂˆÜšY][\]KXÛÛ[[œÎˆ™\X]
+ËZ[›X^
+YœŠJNÂˆØ\ˆLÂˆ›Ü™\‹]Üˆ\ÛÛY˜\ŠK[[™JNÂˆY[™Ë]ÜˆMœÂŸB‚‹œ™\Ûİ\˜ÙKYY]ÜˆÂˆK\™\Ûİ\˜ÙKXÛÛÜˆ˜\ŠKYÜ™Y[ŠNÂˆK\™\Ûİ\˜ÙK\ÛÙˆ˜\ŠKYÜ™Y[‹\ÛÙ
+NÂˆ›Ü™\ˆ\ÛÛYÛÛÜ‹[Z^
+[ˆÜ™Ø‹˜\ŠK\™\Ûİ\˜ÙKXÛÛÜŠHŒ‰K˜\ŠK[[™JJNÂˆ›Ü™\‹\˜Y]\ÎˆLÜÂˆY[™ÎˆL\Âˆ˜XÚÙÜ›İ[™ˆÛÛÜ‹[Z^
+[ˆÜ™Ø‹˜\ŠK\™\Ûİ\˜ÙK\ÛÙ
+HÎ	K˜\ŠK\İ\™˜XÙK\ÛÛY
+JNÂŸB‚‹œ™\Ûİ\˜ÙKYY]Ü‹™[™\™ŞHÂˆK\™\Ûİ\˜ÙKXÛÛÜˆ˜\ŠKX›YJNÂˆK\™\Ûİ\˜ÙK\ÛÙˆ˜\ŠKX›YK\ÛÙ
+NÂŸB‚‹œ™\Ûİ\˜ÙKYY]Ü‹›İ\ˆÂˆK\™\Ûİ\˜ÙKXÛÛÜˆ˜\ŠK]š[Û]
+NÂˆK\™\Ûİ\˜ÙK\ÛÙˆ˜\ŠK]š[Û]\ÛÙ
+NÂŸB‚‹œ™\Ûİ\˜ÙKZXY[™ÈÂˆ\Ü^Nˆ›^Âˆ[YÛ‹Z][\ÎˆÙ[\Âˆ\İYKXÛÛ[ˆÜXÙKX™]ÙY[ÂˆØ\ˆÂˆX\™Ú[‹X›İÛNˆLÂŸB‚‹œ™\Ûİ\˜ÙKZXY[™ÈÜ[ˆÂˆİ™\™›İÎˆY[ÂˆÛÛÜˆ˜\ŠK\™\Ûİ\˜ÙKXÛÛÜŠNÂˆ›Û\Ú^™NˆLÂˆ›Û]ÙZYÚˆÂˆ]\‹\ÜXÚ[™ÎˆŒLY[NÂˆ^[İ™\™›İÎˆ[\Ú\ÎÂˆ^]˜[œÙ›Ü›Nˆ\\˜Ø\ÙNÂˆÚ]K\ÜXÙNˆ›İÜ˜\ÂŸB‚‹œ™\Ûİ\˜ÙKZXY[™È[œ]ÂˆÚYˆÂˆ›Ü™\ˆ\ÛÛYÛÛÜ‹[Z^
+[ˆÜ™Ø‹˜\ŠK\™\Ûİ\˜ÙKXÛÛÜŠHÌ	K˜\ŠK[[™JJNÂˆ›Ü™\‹\˜Y]\ÎˆÂˆY[™Îˆ\ÜÂˆÛÛÜˆ˜\ŠK]^
+NÂˆ˜XÚÙÜ›İ[™ˆ˜\ŠK\İ\™˜XÙK\ÛÛY
+NÂˆ›Û\Ú^™NˆM\Âˆ›Û]ÙZYÚˆÂˆ^X[YÛˆšYÚÂŸB‚‹œİ\YÜšYÂˆ\Ü^NˆÜšYÂˆÜšY][\]KXÛÛ[[œÎˆ™\X]
+‹Z[›X^
+YœŠJNÂˆØ\ˆÂŸB‚‹œİ\YÜšY]ÛˆÂˆZ[‹]ÚYˆÂˆ›Ü™\ˆ\ÛÛY˜\ŠK[[™JNÂˆ›Ü™\‹\˜Y]\ÎˆÜÂˆY[™ÎˆœœÂˆÛÛÜˆ˜\ŠK]^[]]Y
+NÂˆ˜XÚÙÜ›İ[™ˆ˜\ŠK\İ\™˜XÙK\ÛÛY
+NÂˆ›Û\Ú^™Nˆ\Âˆ›Û]ÙZYÚˆÂˆ˜[œÚ][Ûˆ˜[œÙ›Ü›HL\ÈX\ÙKÛÛÜˆLŒ\ÈX\ÙK›Ü™\‹XÛÛÜˆLŒ\ÈX\ÙK˜XÚÙÜ›İ[™LŒ\ÈX\ÙNÂŸB‚‹œİ\YÜšY]Ûšİ™\ˆÂˆ›Ü™\‹XÛÛÜˆ˜\ŠK\™\Ûİ\˜ÙKXÛÛÜŠNÂˆÛÛÜˆ˜\ŠK\™\Ûİ\˜ÙKXÛÛÜŠNÂˆ˜[œÙ›Ü›Nˆ˜[œÛ]VJLœ
+NÂŸB‚‹œİ\YÜšY]Û˜Xİ]™HÂˆ˜[œÙ›Ü›Nˆ˜[œÛ]VJ
+HØØ[J
+NÂˆ˜XÚÙÜ›İ[™ˆ˜\ŠK\™\Ûİ\˜ÙK\ÛÙ
+NÂŸB‚‹\›‹[˜]šYØ][ÛˆÂˆ\Ü^NˆÜšYÂˆÜšY][\]KXÛÛ[[œÎˆZ[›X^
+LYœŠH]]ÈZ[›X^
+LYœŠNÂˆØ\ˆLœÂˆ[YÛ‹Z][\ÎˆÙ[\ÂˆX\™Ú[‹]ÜˆMÜÂˆ›Ü™\‹]Üˆ\ÛÛY˜\ŠK[[™JNÂˆY[™Ë]ÜˆMœÂŸB‚‹›˜]‹X]ÛˆÂˆZ[‹ZZYÚˆœÂˆ›Ü™\ˆ\ÛÛY˜\ŠK[[™JNÂˆ›Ü™\‹\˜Y]\ÎˆL\Âˆ˜XÚÙÜ›İ[™ˆ˜\ŠK\İ\™˜XÙK\ÛÛY
+NÂˆ›Û\Ú^™NˆLœÂˆ›Û]ÙZYÚˆÂˆ˜[œÚ][Ûˆ˜[œÙ›Ü›HM\ÈX\ÙK›Ü™\‹XÛÛÜˆM\ÈX\ÙKÛÛÜˆM\ÈX\ÙK˜XÚÙÜ›İ[™M\ÈX\ÙNÂŸB‚‹›˜]‹X]Ûšİ™\››İ
+™\ØX›Y
+HÂˆ›Ü™\‹XÛÛÜˆ˜\ŠKXœ˜[™
+NÂˆÛÛÜˆ˜\ŠKXœ˜[™
+NÂˆ˜[œÙ›Ü›Nˆ˜[œÛ]V
+Lœ
+NÂŸB‚‹›˜]‹X]Û‹™›ÜØ\™šİ™\››İ
+™\ØX›Y
+HÂˆ˜[œÙ›Ü›Nˆ˜[œÛ]V
+œ
+NÂŸB‚‹›˜]‹X]Û˜Xİ]™N››İ
+™\ØX›Y
+HÂˆ˜[œÙ›Ü›NˆØØ[JMŠNÂŸB‚‹›˜]‹X]Û™\ØX›YÂˆİ\œÛÜˆ›İX[İÙYÂˆÜXÚ]NˆŒÍNÂŸB‚‹›˜]‹X]ÛˆÜ[ˆÂˆX\™Ú[ˆÂˆ›Û\Ú^™NˆMœÂŸB‚‹\›‹\›ÙÜ™\ÜÈÂˆ\Ü^NˆÜšYÂˆZ[‹]ÚYˆÂˆ^X[YÛˆÙ[\ÂŸB‚‹\›‹\›ÙÜ™\ÜÈÜ[ˆÂˆÛÛÜˆ˜\ŠK]^[]]Y
+NÂˆ›Û\Ú^™NˆÂˆ›Û]ÙZYÚˆÂˆ]\‹\ÜXÚ[™ÎˆŒLÙ[NÂˆ^]˜[œÙ›Ü›Nˆ\\˜Ø\ÙNÂŸB‚‹\›‹\›ÙÜ™\ÜÈˆÂˆ›Û\Ú^™NˆLœÂŸB‚‹›™]Ë\›İ[™X]ÛˆÂˆ\İYK\Ù[ˆİ™]ÚÂˆÚ]K\ÜXÙNˆ›İÜ˜\ÂŸB‚‹›™]Ë\›İ[™X]Ûšİ™\ˆœÜ[‹ZXÛÛˆÂˆ[š[X][ÛˆXÛÛ‹\Ü[ˆL\ÈX\ÙNÂŸB‚‹™X]\Ø]™\ÈÂˆ\Ü^NˆÜšYÂˆØ\ˆLÜÂˆ›Ü™\‹]Üˆ\ÛÛY˜\ŠK[[™JNÂˆY[™ÎˆN\ÂŸB‚‹™X]\Ø]™\Ë˜ÛÛ\XİÂˆÜšY][\]KXÛÛ[[œÎˆ™\X]
+‹Z[›X^
+YœŠJNÂˆØ\ˆMœÂˆX\™Ú[ˆMœLÜÂˆ›Ü™\‹]Üˆ\ÛÛY˜\ŠK[[™JNÂˆY[™ÎˆL\ÂŸB‚‹œØ]™K\›İÈÂˆ\Ü^Nˆ›^Âˆ[YÛ‹Z][\ÎˆÙ[\Âˆ\İYKXÛÛ[ˆÜXÙKX™]ÙY[ÂˆØ\ˆLœÂŸB‚‹œØ]™K\›İÈˆÜ[ˆÂˆÛÛÜˆ˜\ŠK]^[]]Y
+NÂˆ›Û\Ú^™NˆL\Âˆ›Û]ÙZYÚˆÂˆ]\‹\ÜXÚ[™ÎˆŒ[NÂˆ^]˜[œÙ›Ü›Nˆ\\˜Ø\ÙNÂŸB‚‹œØ]™K\\ÈÂˆ\Ü^Nˆ›^ÂˆØ\ˆÂŸB‚‹œØ]™K\\ÂˆÚYˆ\ÂˆZYÚˆ\Âˆ›Ü™\ˆœÛÛY˜\ŠK[[™K\İ›Û™ÊNÂˆ›Ü™\‹\˜Y]\ÎˆL	NÂˆ˜XÚÙÜ›İ[™ˆ˜[œÜ\™[Âˆ˜[œÚ][Ûˆ˜[œÙ›Ü›HML\ÈİXšXËX™^šY\ŠŒÍKM‹JK›Ü™\‹XÛÛÜˆML\ÈX\ÙK˜XÚÙÜ›İ[™ML\ÈX\ÙK›Ş\ÚYİÈML\ÈX\ÙNÂŸB‚‹œØ]™K\\šİ™\ˆÂˆ˜[œÙ›Ü›NˆØØ[JKŒM
+NÂŸB‚‹œØ]™K\\™š[YœİXØÙ\ÜÙ\ÈÂˆ›Ü™\‹XÛÛÜˆ˜\ŠKYÜ™Y[ŠNÂˆ˜XÚÙÜ›İ[™ˆ˜\ŠKYÜ™Y[ŠNÂˆ›Ş\ÚYİÎˆÛÛÜ‹[Z^
+[ˆÜ™Ø‹˜\ŠKYÜ™Y[ŠHLÉK˜[œÜ\™[
+NÂŸB‚‹œØ]™K\\™š[Y™˜Z[\™\ÈÂˆ›Ü™\‹XÛÛÜˆ˜\ŠKY[™Ù\ŠNÂˆ˜XÚÙÜ›İ[™ˆ˜\ŠKY[™Ù\ŠNÂˆ›Ş\ÚYİÎˆÛÛÜ‹[Z^
+[ˆÜ™Ø‹˜\ŠKY[™Ù\ŠHLÉK˜[œÜ\™[
+NÂŸB‚‹˜Ü™X]\™KXØ\™™[[Z[˜]YÂˆÜXÚ]NˆNÂˆš[\ˆØ]\˜]JJNÂŸB‚‹˜Ü™X]\™KXØ\™™[[Z[˜]Y›˜[YK\›İÈ‹‹˜Ü™X]\™KXØ\™™[[Z[˜]Yœ™\Ûİ\˜ÙK\İ[[X\HÂˆ^YXÛÜ˜][Ûˆ[™K]›İYÚÂŸB‚‹™[\K\İ]HÂˆ\Ü^NˆÜšYÂˆZ[‹ZZYÚˆÌÌÂˆXÙKZ][\ÎˆÙ[\Âˆ[YÛ‹XÛÛ[ˆÙ[\Âˆ›Ü™\ˆ\\ÚY˜\ŠK[[™K\İ›Û™ÊNÂˆ›Ü™\‹\˜Y]\ÎˆŒœÂˆY[™ÎˆÎŒÂˆ˜XÚÙÜ›İ[™ˆÛÛÜ‹[Z^
+[ˆÜ™Ø‹˜\ŠK\İ\™˜XÙJHN	K˜[œÜ\™[
+NÂˆ^X[YÛˆÙ[\ÂŸB‚‹™[\KYYHÂˆ\Ü^NˆÜšYÂˆÚYˆÌœÂˆZYÚˆÌœÂˆX\™Ú[‹X›İÛNˆM\ÂˆXÙKZ][\ÎˆÙ[\Âˆ›Ü™\‹\˜Y]\ÎˆÂˆÛÛÜˆ˜\ŠKXœ˜[™
+NÂˆ˜XÚÙÜ›İ[™ˆ˜\ŠKXœ˜[™\ÛÙ
+NÂˆ˜[œÙ›Ü›Nˆ›İ]JMYYÊNÂŸB‚‹™[\KYYHİ™ÈÂˆÚYˆÂˆZYÚˆÂˆš[ˆ›Û™NÂˆİ›ÚÙNˆİ\œ™[ÛÛÜÂˆİ›ÚÙK]ÚYˆKÂŸB‚‹™[\K\İ]HˆÂˆX\™Ú[‹X›İÛNˆœÂˆ›ÛY˜[Z[Nˆ”ÜXİ˜[‹Ù[Ü™ÚXKÙ\šYÂˆ›Û\Ú^™Nˆ\ÂŸB‚‹™[\K\İ]HÂˆX^]ÚYˆÍŒÂˆX\™Ú[‹X›İÛNˆŒÂˆÛÛÜˆ˜\ŠK]^[]]Y
+NÂˆ›Û\Ú^™NˆLÜÂŸB‚‹˜ÛÛX˜]X]ÛˆÂˆÚYˆL	NÂˆZ[‹ZZYÚˆMœÂˆX\™Ú[‹]ÜˆNÂˆ›Ü™\ˆÂˆ›Ü™\‹\˜Y]\ÎˆM\Âˆ›Û\Ú^™NˆMÂˆ]\‹\ÜXÚ[™ÎˆŒÙ[NÂŸB‚‹˜ÛÛX˜]X]Ûˆİ™ÈÂˆÚYˆ\ÂˆZYÚˆ\Âˆš[ˆ›Û™NÂˆİ›ÚÙNˆİ\œ™[ÛÛÜÂˆİ›ÚÙK]ÚYˆKÎÂŸB‚‹›[Ù[X˜XÚÙ›ÜÂˆÜÚ][Ûˆš^YÂˆ‹Z[™^ˆLÂˆ[œÙ]ˆÂˆ\Ü^NˆÜšYÂˆXÙKZ][\ÎˆÙ[\Âˆİ™\™›İË^Nˆ]]ÎÂˆY[™ÎˆŒÂˆ˜XÚÙÜ›İ[™ˆ™Ø˜JL‹KN
+NÂˆ˜XÚÙ›ÜYš[\ˆ›\Š
+NÂˆ[š[X][Ûˆ˜YKZ[ˆN\ÈX\ÙH›İÂŸB‚‹˜YY›Ü›HÂˆÚYˆZ[ŠLŒL	JNÂˆ›Ü™\ˆ\ÛÛY˜\ŠK[[™JNÂˆ›Ü™\‹\˜Y]\ÎˆŒœÂˆY[™ÎˆÂˆ˜XÚÙÜ›İ[™ˆ˜\ŠK\İ\™˜XÙK\ÛÛY
+NÂˆ›Ş\ÚYİÎˆÌL™Ø˜JŒÊNÂˆ[š[X][Ûˆ[Ù[Y[\ˆÌŒ\ÈİXšXËX™^šY\ŠŒŒ‹KŒÍ‹JH›İÂŸB‚‹™›Ü›KZXY[™ÈÂˆ\Ü^Nˆ›^Âˆ[YÛ‹Z][\Îˆİ\Âˆ\İYKXÛÛ[ˆÜXÙKX™]ÙY[ÂˆØ\ˆMœÂˆX\™Ú[‹X›İÛNˆŒÂŸB‚‹™›Ü›KZXY[™ÈˆÂˆX\™Ú[ˆÂˆ›ÛY˜[Z[Nˆ”ÜXİ˜[‹Ù[Ü™ÚXKÙ\šYÂˆ›Û\Ú^™NˆÜÂŸB‚‹šXÛÛ‹X]ÛˆÂˆ\Ü^NˆÜšYÂˆÚYˆÍœÂˆZYÚˆÍœÂˆXÙKZ][\ÎˆÙ[\Âˆ›Ü™\‹\˜Y]\ÎˆLÂˆÛÛÜˆ˜\ŠK]^[]]Y
+NÂˆ›Û\Ú^™Nˆ\Âˆ˜[œÚ][ÛˆÛÛÜˆM\ÈX\ÙK˜XÚÙÜ›İ[™M\ÈX\ÙK˜[œÙ›Ü›HM\ÈX\ÙNÂŸB‚‹šXÛÛ‹X]Ûšİ™\ˆÂˆÛÛÜˆ˜\ŠKY[™Ù\ŠNÂˆ˜XÚÙÜ›İ[™ˆ˜\ŠKY[™Ù\‹\ÛÙ
+NÂˆ˜[œÙ›Ü›Nˆ›İ]JYYÊNÂŸB‚‹™›Ü›KYÜšYÂˆ\Ü^NˆÜšYÂˆÜšY][\]KXÛÛ[[œÎˆ™\X]
+‹Z[›X^
+YœŠJNÂˆØ\ˆLÜÂˆX\™Ú[‹]ÜˆLÜÂŸB‚‹™šY[Âˆ\Ü^NˆÜšYÂˆØ\ˆœÂŸB‚‹™šY[™[ÂˆÚYˆL	NÂŸB‚‹™šY[Ü[ˆÂˆÛÛÜˆ˜\ŠK]^[]]Y
+NÂˆ›Û\Ú^™NˆLÂˆ›Û]ÙZYÚˆÂˆ]\‹\ÜXÚ[™ÎˆŒ[NÂˆ^]˜[œÙ›Ü›Nˆ\\˜Ø\ÙNÂŸB‚‹™šY[[œ]ÂˆÚYˆL	NÂˆZ[‹ZZYÚˆÂˆ›Ü™\ˆ\ÛÛY˜\ŠK[[™K\İ›Û™ÊNÂˆ›Ü™\‹\˜Y]\ÎˆLÂˆY[™Îˆ\L\ÂˆÛÛÜˆ˜\ŠK]^
+NÂˆ˜XÚÙÜ›İ[™ˆ˜\ŠKX™ÊNÂˆ˜[œÚ][Ûˆ›Ü™\‹XÛÛÜˆM\ÈX\ÙK›Ş\ÚYİÈM\ÈX\ÙK˜XÚÙÜ›İ[™M\ÈX\ÙNÂŸB‚‹™šY[[œ]™›Øİ\ÈÂˆ›Ü™\‹XÛÛÜˆ˜\ŠKXœ˜[™
+NÂˆİ][™NˆÂˆ˜XÚÙÜ›İ[™ˆ˜\ŠK\İ\™˜XÙK\ÛÛY
+NÂˆ›Ş\ÚYİÎˆÜÛÛÜ‹[Z^
+[ˆÜ™Ø‹˜\ŠKXœ˜[™
+HL‰K˜[œÜ\™[
+NÂŸB‚‹š[š]X]]™KYšY[ÂˆX\™Ú[‹]ÜˆLÜÂŸB‚‹™šY[Y\œ›ÜˆÂˆÛÛÜˆ˜\ŠKY[™Ù\ŠNÂˆ›Û\Ú^™NˆL\ÂŸB‚‹™›Ü›KXXİ[ÛœÈÂˆ\Ü^NˆÜšYÂˆÜšY][\]KXÛÛ[[œÎˆYœˆKœÂˆØ\ˆLÂˆX\™Ú[‹]ÜˆŒÜÂŸB‚‹œ›İ[™\ÚY™›H˜Ü™X]\™KXØ\™Âˆ[š[X][Ûˆ›İ[™XØ\™\ÚY™›HŒŒ\È›İÂˆ[š[X][Û‹Y[^NˆØ[Ê˜\ŠKXØ\™Z[™^
+H
+ˆ[\ÊNÂŸB‚Ù^Yœ˜[Y\ÈØ\™Y[\ˆÂˆœ›ÛHÈÜXÚ]NˆÈ˜[œÙ›Ü›Nˆ˜[œÛ]VJLœ
+NÈBˆÈÈÜXÚ]NˆNÈ˜[œÙ›Ü›Nˆ˜[œÛ]VJ
+NÈBŸB‚Ù^Yœ˜[Y\ÈXİ]™KXØ\™[Ü[ˆÂˆœ›ÛHÈ˜[œÙ›Ü›NˆØØ[JNJNÈBˆÈÈ˜[œÙ›Ü›NˆØØ[JJNÈBŸB‚Ù^Yœ˜[Y\ÈÛÛ[\™]™X[Âˆœ›ÛHÈÜXÚ]NˆÈ˜[œÙ›Ü›Nˆ˜[œÛ]VJMÜ
+NÈBˆÈÈÜXÚ]NˆNÈ˜[œÙ›Ü›Nˆ˜[œÛ]VJ
+NÈBŸB‚Ù^Yœ˜[Y\È˜YÙK\[ÙHÂˆL	HÈ›Ş\ÚYİÎˆ\ÛÛÜ‹[Z^
+[ˆÜ™Ø‹˜\ŠKXœ˜[™
+HL	K˜[œÜ\™[
+NÈBŸB‚Ù^Yœ˜[Y\È›İ[™\[™[\[ÙHÂˆ	HÈ›Ü™\‹XÛÛÜˆ˜\ŠKXœ˜[™
+NÈ›Ş\ÚYİÎˆœÛÛÜ‹[Z^
+[ˆÜ™Ø‹˜\ŠKXœ˜[™
+HL	K˜[œÜ\™[
+NÈBŸB‚Ù^Yœ˜[Y\È›İ[™[[X™\‹\ÜÂˆ	HÈÜXÚ]NˆÈ˜[œÙ›Ü›Nˆ˜[œÛ]VJLœ
+HØØ[JŠNÈBˆŒ	HÈ˜[œÙ›Ü›Nˆ˜[œÛ]VJLœ
+HØØ[JKŒŒŠNÈBˆL	HÈÜXÚ]NˆNÈ˜[œÙ›Ü›Nˆ˜[œÛ]VJ
+HØØ[JJNÈBŸB‚Ù^Yœ˜[Y\È›İ[™XØ\™\ÚY™›HÂˆ	HÈÜXÚ]NˆÈ˜[œÙ›Ü›Nˆ˜[œÛ]VJLÜ
+HØØ[JN
+NÈBˆMIHÈÜXÚ]NˆNÈ˜[œÙ›Ü›Nˆ˜[œÛ]VJLœ
+HØØ[JKŒJNÈBˆL	HÈÜXÚ]NˆNÈ˜[œÙ›Ü›Nˆ˜[œÛ]VJ
+HØØ[JJNÈBŸB‚Ù^Yœ˜[Y\ÈXÛÛ‹\Ü[ˆÂˆÈÈ˜[œÙ›Ü›Nˆ›İ]JÍŒYÊNÈBŸB‚Ù^Yœ˜[Y\È˜YKZ[ˆÂˆœ›ÛHÈÜXÚ]NˆÈBˆÈÈÜXÚ]NˆNÈBŸB‚Ù^Yœ˜[Y\È[Ù[Y[\ˆÂˆœ›ÛHÈÜXÚ]NˆÈ˜[œÙ›Ü›Nˆ˜[œÛ]VJMœ
+HØØ[JMÊNÈBˆÈÈÜXÚ]NˆNÈ˜[œÙ›Ü›Nˆ˜[œÛ]VJ
+HØØ[JJNÈBŸB‚YYXH
+X^]ÚYˆÌŒ
+HÂˆXZ[ˆÂˆÚYˆZ[ŠL	HHŒœN
+NÂˆY[™Ë]ÜˆNÂˆB‚ˆ˜ÛÛX˜]\[™[ÂˆX\™Ú[‹X›İÛNˆÌÂˆB‚ˆ›[ÙKXÛÛ›ÛÂˆY[™ÎˆMÂˆB‚ˆœ™\Ûİ\˜ÙKYÜšYÂˆÜšY][\]KXÛÛ[[œÎˆYœÂˆB‚ˆœ™\Ûİ\˜ÙKYY]ÜˆÂˆ\Ü^NˆÜšYÂˆÜšY][\]KXÛÛ[[œÎˆZ[›X^
+LLÙœŠHYœÂˆ[YÛ‹Z][\ÎˆÙ[\ÂˆØ\ˆLÂˆB‚ˆœ™\Ûİ\˜ÙKZXY[™ÈÂˆX\™Ú[‹X›İÛNˆÂˆBŸB‚YYXH
+X^]ÚYˆ
+HÂˆÜ˜\ˆÂˆZ[‹ZZYÚˆÂˆY[™Îˆ\L\ÂˆB‚ˆ˜œ˜[™ˆİ™ÈÂˆÚYˆÌœÂˆZYÚˆÌœÂˆB‚ˆ˜œ˜[™[˜[YHÂˆ›Û\Ú^™NˆMÂˆB‚ˆ˜œ˜[™\İX]HÂˆ\Ü^Nˆ›Û™NÂˆB‚ˆÜ˜\‹XÛÛ›ÛÈÂˆØ\ˆÜÂˆB‚ˆ[YK]ÙÙÛHÜ[ˆÂˆÚYˆÜÂˆZYÚˆÜÂˆB‚ˆœ™\Ù]X]ÛˆÂˆZ[‹]ÚYˆNÂˆY[™ËZ[›[™NˆÜÂˆ›Û\Ú^™NˆL\ÂˆB‚ˆ˜ÛÛX˜]\[™[ÂˆÜšY][\]KXÛÛ[[œÎˆZ[›X^
+YœŠHÍÜÂˆØ\ˆÂˆB‚ˆ›[ÙKXÛÛ›ÛÂˆØ\ˆÂˆB‚ˆ˜ÛÛ›Û[X™[Âˆ›Û\Ú^™NˆLœÂˆB‚ˆ˜ÛÛ›ÛY\ØÜš\[Û‹ˆœİÚ]Ú]˜[YHÂˆ\Ü^Nˆ›Û™NÂˆB‚ˆœ›İ[™Y\Ü^HÂˆZ[‹]ÚYˆÂˆB‚ˆœ›Üİ\‹ZXY[™ÈÂˆ[YÛ‹Z][\ÎˆÙ[\ÂˆB‚ˆœ›Üİ\‹ZXY[™ÈHÂˆ›Û\Ú^™NˆÜÂˆB‚ˆ˜YX]ÛˆÂˆZ[‹ZZYÚˆÎ\ÂˆY[™ÎˆL\Âˆ›Û\Ú^™NˆL\ÂˆB‚ˆ˜Ø\™ZXY\ˆÂˆÜšY][\]KXÛÛ[[œÎˆZ[›X^
+YœŠHN]]ÎÂˆØ\ˆÂˆZ[‹ZZYÚˆÍœÂˆY[™ÎˆLœL\LœM\ÂˆB‚ˆ\›‹[[X™\ˆÂˆ\Ü^Nˆ›Û™NÂˆB‚ˆ›˜[YK\›İÈÂˆØ\ˆ\ÂˆB‚ˆ›˜[YK\›İÈˆÂˆ›Û\Ú^™NˆNÂˆB‚ˆœİ]\ËX˜YÙHÂˆY[™ÎˆÜ\Âˆ›Û\Ú^™NˆÜÂˆB‚ˆœİ]\ËX˜YÙK˜İ\œ™[Âˆ\Ü^Nˆ›Û™NÂˆB‚ˆœ™\Ûİ\˜ÙK\İ[[X\HÂˆØ\ˆ\\Âˆ›Û\Ú^™Nˆ\ÂˆB‚ˆœ™\Ûİ\˜ÙK\İ[[X\HˆÂˆ›Û\Ú^™NˆLÂˆB‚ˆš[š]X]]™KX›ŞÂˆZ[‹]ÚYˆMœÂˆZ[‹ZZYÚˆLœÂˆB‚ˆœ™[[İ™KX]ÛˆÂˆÚYˆ\ÂˆB‚ˆ˜Xİ]™KXÛÛ[ÂˆY[™ÎˆL\LœÂˆB‚ˆœ™\Ûİ\˜ÙKYY]ÜˆÂˆÜšY][\]KXÛÛ[[œÎˆYœÂˆY[™Îˆ\ÂˆB‚ˆœ™\Ûİ\˜ÙKZXY[™ÈÂˆ\Ü^NˆÜšYÂˆØ\ˆÂˆB‚ˆœ™\Ûİ\˜ÙKZXY[™È[œ]ÂˆÚYˆL	NÂˆ^X[YÛˆYÂˆB‚ˆœİ\YÜšYÂˆØ\ˆÜÂˆB‚ˆœİ\YÜšY]ÛˆÂˆY[™ÎˆÜ\Âˆ›Û\Ú^™NˆÂˆB‚ˆ\›‹[˜]šYØ][ÛˆÂˆÜšY][\]KXÛÛ[[œÎˆYœˆ]]ÈYœÂˆØ\ˆÜÂˆB‚ˆ›˜]‹X]Û‹ˆ›™]Ë\›İ[™X]ÛˆÂˆZ[‹]ÚYˆÂˆY[™ËZ[›[™NˆÂˆ›Û\Ú^™NˆLÂˆB‚ˆ\›‹\›ÙÜ™\ÜÈÂˆZ[‹]ÚYˆÂˆB‚ˆ™X]\Ø]™\Ë˜ÛÛ\XİÂˆX\™Ú[‹[YˆM\ÂˆB‚ˆœØ]™K\\ÂˆÚYˆŒœÂˆZYÚˆŒœÂˆB‚ˆ˜YY›Ü›HÂˆY[™ÎˆN\ÂˆB‚ˆ™›Ü›KYÜšYÂˆØ\ˆLÂˆBŸB‚YYXH
+™Y™\œË\™YXÙY[[İ[Ûˆ™YXÙJHÂˆ
+‹ˆ
+˜™Y›Ü™Kˆ
+˜Y\ˆÂˆØÜ›ÛX™Z]š[Üˆ]]ÈZ[\Ü[Âˆ[š[X][Û‹Y\˜][ÛˆŒ[\ÈZ[\Ü[Âˆ[š[X][Û‹Z]\˜][Û‹XÛİ[ˆHZ[\Ü[Âˆ˜[œÚ][Û‹Y\˜][ÛˆŒ[\ÈZ[\Ü[ÂˆBŸB
