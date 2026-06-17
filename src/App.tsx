@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import type { Creature, CreatureDraft, TrackerState } from "./types";
+import type { CSSProperties } from "react";
+import type { Creature, CreatureDraft, CreatureStatus, TrackerState } from "./types";
 import {
   STORAGE_KEY,
+  clampDeathSaves,
   createId,
   createInitialState,
   firstEligibleId,
+  getCreatureStatus,
+  isTurnEligible,
   loadState,
   rollDynamicInitiative,
   saveState,
@@ -12,6 +16,7 @@ import {
 } from "./utils";
 
 const STEPS = [-10, -5, -1, 1, 5, 10];
+const HEAL_STEPS = [1, 5, 10];
 
 function SunIcon() {
   return (
@@ -25,7 +30,7 @@ function SunIcon() {
 function MoonIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z" />
+      <path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 0 1 0 20.5 14.2Z" />
     </svg>
   );
 }
@@ -37,6 +42,50 @@ function D20Icon() {
       <path d="m5 14 19 9 19-9M24 23v22M14 38l10-15 10 15M15 9l9 14L33 9" />
     </svg>
   );
+}
+
+function statusLabel(status: CreatureStatus): string {
+  switch (status) {
+    case "dead":
+      return "Мёртв";
+    case "stabilized":
+      return "Стабилизирован";
+    case "dying":
+      return "При смерти";
+    default:
+      return "";
+  }
+}
+
+function applyHpChange(creature: Creature, hp: number): Creature {
+  if (hp > 0) {
+    return {
+      ...creature,
+      hp,
+      successes: 0,
+      failures: 0,
+      initiativeFrozen: false,
+    };
+  }
+
+  if (hp === 0) {
+    return {
+      ...creature,
+      hp,
+      successes: 0,
+      failures: 0,
+      initiativeFrozen: true,
+    };
+  }
+
+  const wasStabilized = getCreatureStatus(creature) === "stabilized";
+  return {
+    ...creature,
+    hp,
+    successes: wasStabilized ? 0 : creature.successes,
+    failures: wasStabilized ? 0 : creature.failures,
+    initiativeFrozen: true,
+  };
 }
 
 interface DeathSavesProps {
@@ -70,10 +119,10 @@ function DeathSaves({ creature, compact = false, onChange }: DeathSavesProps) {
   };
 
   return (
-    <div className={`death-saves ${compact ? "compact" : ""}`}>
+    <div className={`death-saves ${compact ? "compact" : ""}`} onClick={(event) => event.stopPropagation()}>
       {!compact && <div className="section-kicker">Спасброски от смерти</div>}
-      {row("successes", compact ? "У" : "Успех")}
-      {row("failures", compact ? "П" : "Провал")}
+      {row("successes", "Успех")}
+      {row("failures", "Провал")}
     </div>
   );
 }
@@ -109,6 +158,58 @@ function ResourceEditor({ label, value, tone, onChange }: ResourceEditorProps) {
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+interface StabilizedPanelProps {
+  creature: Creature;
+  compact?: boolean;
+  onHpChange: (value: number) => void;
+}
+
+function StabilizedPanel({ creature, compact = false, onHpChange }: StabilizedPanelProps) {
+  return (
+    <div className={`status-panel stabilized-panel ${compact ? "compact" : ""}`} onClick={(event) => event.stopPropagation()}>
+      <div>
+        <div className="section-kicker">Стабилизирован</div>
+        <p>Не ходит в очереди, пока HP не станет выше 0.</p>
+      </div>
+      <div className="status-actions">
+        <input
+          className="quick-hp-input"
+          type="number"
+          value={creature.hp}
+          aria-label={`HP ${creature.name}`}
+          onChange={(event) => onHpChange(Number(event.target.value) || 0)}
+        />
+        <div className="heal-buttons">
+          {HEAL_STEPS.map((step) => (
+            <button type="button" key={step} onClick={() => onHpChange(creature.hp + step)}>
+              +{step}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface RevivePanelProps {
+  compact?: boolean;
+  onRevive: () => void;
+}
+
+function RevivePanel({ compact = false, onRevive }: RevivePanelProps) {
+  return (
+    <div className={`status-panel revive-panel ${compact ? "compact" : ""}`} onClick={(event) => event.stopPropagation()}>
+      <div>
+        <div className="section-kicker">Мёртв</div>
+        <p>Существо исключено из очереди хода.</p>
+      </div>
+      <button className="button revive-button" type="button" onClick={onRevive}>
+        Воскресить
+      </button>
     </div>
   );
 }
@@ -242,7 +343,7 @@ function App() {
   useEffect(() => {
     if (!state.inCombat) return;
     const active = state.creatures.find((creature) => creature.id === state.activeId);
-    if (!active || active.failures >= 3) {
+    if (!active || !isTurnEligible(active)) {
       const nextId = firstEligibleId(state.creatures);
       if (nextId !== state.activeId) {
         setState((current) => ({ ...current, activeId: nextId }));
@@ -252,7 +353,7 @@ function App() {
 
   const activeCreature = state.creatures.find((creature) => creature.id === state.activeId) ?? null;
   const eligibleIds = useMemo(
-    () => state.creatures.filter((creature) => creature.failures < 3).map((creature) => creature.id),
+    () => state.creatures.filter(isTurnEligible).map((creature) => creature.id),
     [state.creatures],
   );
   const activeTurnIndex = activeCreature ? eligibleIds.indexOf(activeCreature.id) : -1;
@@ -266,22 +367,77 @@ function App() {
     }));
   };
 
+  const setCreatureHp = (id: string, hp: number) => {
+    setState((current) => {
+      const creatures = current.creatures.map((creature) =>
+        creature.id === id ? applyHpChange(creature, hp) : creature,
+      );
+      const activeStillEligible = creatures.some(
+        (creature) => creature.id === current.activeId && isTurnEligible(creature),
+      );
+      const healedCreature = creatures.find((creature) => creature.id === id);
+      return {
+        ...current,
+        creatures,
+        activeId: activeStillEligible
+          ? current.activeId
+          : healedCreature && isTurnEligible(healedCreature)
+            ? healedCreature.id
+            : firstEligibleId(creatures),
+      };
+    });
+  };
+
   const changeDeathSave = (
     id: string,
     kind: "successes" | "failures",
     value: number,
   ) => {
     setState((current) => {
-      const creatures = current.creatures.map((creature) =>
-        creature.id === id ? { ...creature, [kind]: value } : creature,
-      );
+      const creatures = current.creatures.map((creature) => {
+        if (creature.id !== id) return creature;
+        const nextValue = clampDeathSaves(value);
+        const next = { ...creature, [kind]: nextValue };
+        if (kind === "successes" && nextValue >= 3 && next.failures < 3) {
+          return {
+            ...next,
+            hp: 0,
+            initiativeFrozen: true,
+          };
+        }
+        return next;
+      });
       const activeStillEligible = creatures.some(
-        (creature) => creature.id === current.activeId && creature.failures < 3,
+        (creature) => creature.id === current.activeId && isTurnEligible(creature),
       );
       return {
         ...current,
         creatures,
         activeId: activeStillEligible ? current.activeId : firstEligibleId(creatures),
+      };
+    });
+  };
+
+  const reviveCreature = (id: string) => {
+    setState((current) => {
+      const creatures = current.creatures.map((creature) =>
+        creature.id === id
+          ? {
+              ...creature,
+              hp: 1,
+              successes: 0,
+              failures: 0,
+              initiativeFrozen: false,
+            }
+          : creature,
+      );
+      const activeStillEligible = creatures.some(
+        (creature) => creature.id === current.activeId && isTurnEligible(creature),
+      );
+      return {
+        ...current,
+        creatures,
+        activeId: activeStillEligible ? current.activeId : id,
       };
     });
   };
@@ -311,7 +467,7 @@ function App() {
           id: createId(),
           order: Math.max(-1, ...current.creatures.map((creature) => creature.order)) + 1,
           currentInitiative: null,
-          initiativeFrozen: false,
+          initiativeFrozen: draft.hp <= 0,
           successes: 0,
           failures: 0,
         },
@@ -468,19 +624,21 @@ function App() {
             <div className={`creature-list ${roundAnimating ? "round-shuffle" : ""}`}>
               {state.creatures.map((creature, index) => {
                 const active = state.inCombat && creature.id === state.activeId;
-                const eliminated = creature.failures >= 3;
-                const isDown = creature.hp <= 0;
+                const status = getCreatureStatus(creature);
+                const eliminated = status === "dead";
+                const stabilized = status === "stabilized";
+                const dying = status === "dying";
                 const initiative = state.dynamicInitiative
                   ? state.inCombat ? creature.currentInitiative ?? 0 : creature.initiativeModifier
                   : creature.fixedInitiative;
 
                 return (
                   <article
-                    className={`creature-card ${active ? "active" : ""} ${eliminated ? "eliminated" : ""}`}
+                    className={`creature-card ${active ? "active" : ""} ${eliminated ? "eliminated" : ""} ${status}`}
                     key={creature.id}
-                    style={{ "--card-index": index } as React.CSSProperties}
+                    style={{ "--card-index": index } as CSSProperties}
                     onClick={() => {
-                      if (state.inCombat && !eliminated) {
+                      if (state.inCombat && isTurnEligible(creature)) {
                         setState((current) => ({ ...current, activeId: creature.id }));
                       }
                     }}
@@ -491,12 +649,11 @@ function App() {
                       <div className="creature-identity">
                         <div className="name-row">
                           <h2>{creature.name}</h2>
-                          {eliminated && <span className="status-badge dead">Выбыл</span>}
-                          {!eliminated && isDown && <span className="status-badge down">При смерти</span>}
+                          {status !== "alive" && <span className={`status-badge ${status}`}>{statusLabel(status)}</span>}
                           {active && <span className="status-badge current">Ход</span>}
                         </div>
                         <div className="resource-summary">
-                          <span className={isDown ? "danger" : ""}>HP <b>{creature.hp}</b></span>
+                          <span className={creature.hp <= 0 ? "danger" : ""}>HP <b>{creature.hp}</b></span>
                           <span>ME <b>{creature.me}</b></span>
                           <span>{creature.otherName} <b>{creature.otherValue}</b></span>
                         </div>
@@ -535,28 +692,53 @@ function App() {
                       )}
                     </div>
 
-                    {state.inCombat && !active && isDown && (
+                    {state.inCombat && !active && dying && (
                       <DeathSaves
                         compact
                         creature={creature}
                         onChange={(kind, value) => changeDeathSave(creature.id, kind, value)}
                       />
                     )}
+                    {state.inCombat && !active && stabilized && (
+                      <StabilizedPanel
+                        compact
+                        creature={creature}
+                        onHpChange={(value) => setCreatureHp(creature.id, value)}
+                      />
+                    )}
+                    {state.inCombat && eliminated && (
+                      <>
+                        <DeathSaves
+                          compact
+                          creature={creature}
+                          onChange={(kind, value) => changeDeathSave(creature.id, kind, value)}
+                        />
+                        <RevivePanel compact onRevive={() => reviveCreature(creature.id)} />
+                      </>
+                    )}
 
                     {active && (
                       <div className="active-content">
-                        {isDown ? (
+                        {dying && (
                           <DeathSaves
                             creature={creature}
                             onChange={(kind, value) => changeDeathSave(creature.id, kind, value)}
                           />
-                        ) : (
+                        )}
+                        {stabilized && (
+                          <StabilizedPanel
+                            creature={creature}
+                            onHpChange={(value) => setCreatureHp(creature.id, value)}
+                          />
+                        )}
+                        {eliminated && <RevivePanel onRevive={() => reviveCreature(creature.id)} />}
+                        {status === "alive" && (
                           <div className="resource-grid">
                             <ResourceEditor
                               label="HP"
                               value={creature.hp}
                               tone="health"
-                              onChange={(value) => updateCreature(creature.id, (current) => ({ ...current, hp: value }))}
+                              onChange={(value) => setCreatureHp(creature.id, value)}
                             />
                             <ResourceEditor
                               label="ME"
