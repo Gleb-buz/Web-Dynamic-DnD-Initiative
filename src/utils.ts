@@ -1,4 +1,4 @@
-import type { Creature, Theme, TrackerState } from "./types";
+import type { Creature, CreatureStatus, Theme, TrackerState } from "./types";
 
 export const STORAGE_KEY = "dnd-dynamic-initiative-tracker-v2";
 
@@ -26,10 +26,20 @@ export function loadState(): TrackerState {
 
     const saved = JSON.parse(raw) as Partial<TrackerState>;
     const initial = createInitialState();
+    const creatures = Array.isArray(saved.creatures)
+      ? saved.creatures.map((creature) => ({
+          ...creature,
+          successes: clampDeathSaves(creature.successes),
+          failures: clampDeathSaves(creature.failures),
+          initiativeFrozen: Boolean(creature.initiativeFrozen),
+        }))
+      : [];
+
     return {
       ...initial,
       ...saved,
-      creatures: Array.isArray(saved.creatures) ? saved.creatures : [],
+      creatures,
+      activeId: typeof saved.activeId === "string" ? saved.activeId : null,
       theme: saved.theme === "dark" || saved.theme === "light" ? saved.theme : initial.theme,
     };
   } catch {
@@ -85,8 +95,25 @@ export function sortFixedInitiative(creatures: Creature[]): Creature[] {
   return stableSort(creatures, (creature) => creature.fixedInitiative ?? 0);
 }
 
+export function clampDeathSaves(value: unknown): number {
+  if (typeof value !== "number" || Number.isNaN(value)) return 0;
+  return Math.max(0, Math.min(3, value));
+}
+
+export function getCreatureStatus(creature: Creature): CreatureStatus {
+  if (creature.failures >= 3) return "dead";
+  if (creature.hp > 0) return "alive";
+  if (creature.hp === 0 || creature.successes >= 3) return "stabilized";
+  return "dying";
+}
+
+export function isTurnEligible(creature: Creature): boolean {
+  const status = getCreatureStatus(creature);
+  return status === "alive" || status === "dying";
+}
+
 export function firstEligibleId(creatures: Creature[]): string | null {
-  return creatures.find((creature) => creature.failures < 3)?.id ?? null;
+  return creatures.find(isTurnEligible)?.id ?? null;
 }
 
 export function createId(): string {
