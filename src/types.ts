@@ -1,5 +1,7 @@
 export type Theme = "light" | "dark";
 
+export type CreatureStatus = "alive" | "dying" | "stabilized" | "dead";
+
 export interface Creature {
   id: string;
   order: number;
